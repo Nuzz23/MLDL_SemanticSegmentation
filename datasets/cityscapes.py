@@ -27,14 +27,14 @@ class CityScapes(Dataset):
 
         prefix =  path_dir.split("/")[-1].strip()
         path_dir = '/'.join(path_dir.split("/")[:-2])
-        
+
         prefixKey, prefixValue = os.path.join(path_dir, self._keyPathFinal, prefix), os.path.join(path_dir, self._valuePathFinal, prefix)
 
         self._images = {os.path.join(prefixKey, folder, photo):[os.path.join(prefixValue, folder, '_'.join(photo.split("_")[:-1])) + CityScapes._color,
                                                             os.path.join(prefixValue, folder, '_'.join(photo.split("_")[:-1])) + CityScapes._label]
                         for folder in os.listdir(prefixKey) for photo in os.listdir(os.path.join(prefixKey, folder)) if photo.endswith('.png')}
-        
-        self._index = {i:key for i, key in enumerate(self._images)}
+
+        self._index = {i:key for i, key in enumerate(sorted(self._images.keys()))}
 
 
     def __getitem__(self, idx:int):
@@ -42,7 +42,7 @@ class CityScapes(Dataset):
         Loads the image and its corresponding label given the path.
 
         Args:
-            idx (str): path to the image.
+            idx (int): path to the image.
 
         Returns:
             images (list[torch.Tensor]): list containing the image and its corresponding label as torch tensor.
@@ -50,24 +50,22 @@ class CityScapes(Dataset):
                 - color (torch.Tensor): color label as torch tensor.
                 - mask label (torch.Tensor): mask label as torch tensor.
         """
-        idx = self._index[idx]
+        idx, toPil = self._index[idx], ToPILImage()
 
-        toPil = ToPILImage()
-        
         image = read_image(idx)
         color = read_image(self._images[idx][0])
         mask =  read_image(self._images[idx][1])
 
         if self._transform:
             image = self._transform(toPil(image))
-            
+
         if self._targetTransfrom:
             color = self._targetTransfrom(toPil(color))
             mask = self._targetTransfrom(toPil(mask))
 
         return image, color, mask
-            
-            
+
+
 
     def __len__(self)->int:
         """returns the number of images in the dataset.
