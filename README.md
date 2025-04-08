@@ -5,6 +5,6 @@ This folder contains the project developed for the course Machine Learning and D
 
 Authors:
 - Aldo Karamani
-- Simone Licitra
-- Nunzio Licalzi
 - Tommaso La Malfa
+- Nunzio Licalzi
+- Simone Licitra
