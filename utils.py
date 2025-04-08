@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import torch
 
 
 def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
@@ -65,3 +67,33 @@ def meanIoULoss(true: np.ndarray, pred: np.ndarray, n: int=19)->float:
         mean IoU (float): mean IoU
     """
     return per_class_iou(fast_hist(a=true, b=pred, n=n)).mean()
+
+
+
+def printImage(tensor:torch.Tensor) -> None:
+    """ Display the image, color, and mask using matplotlib
+    
+    Args:
+        tensor (torch.Tensor): tensor containing the image, color, and mask
+    """
+    image_np, color_np, mask_np = tensor[0].numpy().transpose(1, 2, 0), tensor[1].numpy().transpose(1, 2, 0), tensor[2].numpy().transpose(1, 2, 0)
+
+
+    # Display the image, color, and mask using matplotlib
+    plt.figure(figsize=(15, 5))
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(image_np)
+    plt.title('Image')
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(color_np)
+    plt.title('Color')
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(mask_np)
+    mask_np[mask_np==255].cumsum()
+    plt.title('Mask')
+
+    plt.show()
+    print(image_np.shape)
