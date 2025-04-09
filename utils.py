@@ -66,7 +66,7 @@ def meanIoULoss(true: np.ndarray, pred: np.ndarray, n: int=19)->float:
     Returns:
         mean IoU (float): mean IoU
     """
-    return per_class_iou(fast_hist(a=true, b=pred, n=n)).mean()
+    return per_class_iou(fast_hist(true=true, pred=pred, n=n)).mean()
 
 
 
