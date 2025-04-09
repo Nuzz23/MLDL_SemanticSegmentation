@@ -1,6 +1,6 @@
 import os
 from torch.utils.data import Dataset
-from torchvision.io import read_image
+from torchvision.io import decode_png, decode_image 
 from torchvision.transforms import ToPILImage
 
 
@@ -52,9 +52,9 @@ class CityScapes(Dataset):
         """
         idx, toPil = self._index[idx], ToPILImage()
 
-        image = read_image(idx)
-        color = read_image(self._images[idx][0])
-        mask =  read_image(self._images[idx][1])
+        image = decode_png(idx)
+        color = decode_png(self._images[idx][0])
+        mask =  decode_png(self._images[idx][1])
 
         if self._transform:
             image = self._transform(toPil(image))

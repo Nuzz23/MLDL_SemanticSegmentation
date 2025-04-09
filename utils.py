@@ -39,7 +39,7 @@ def fast_hist(true, pred, n:int):
     
     
     k = (true >= 0) & (true < n)
-    return np.bincount(n * true[k].int() + pred[k], minlength=n ** 2).reshape(n, n)
+    return torch.bincount(n * true[k].int() + pred[k], minlength=n ** 2).reshape(n, n)
 
 
 def per_class_iou(hist:np.ndarray)->np.ndarray:
