@@ -25,7 +25,7 @@ def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
     return optimizer.param_groups[0]['lr']
 
 
-def fast_hist(true:np.ndarray, pred:np.ndarray, n:int)->np.ndarray:
+def fast_hist(true, pred, n:int):
     """Fast histogram for computing confusion matrix
 
     Args:
@@ -39,7 +39,7 @@ def fast_hist(true:np.ndarray, pred:np.ndarray, n:int)->np.ndarray:
     
     
     k = (true >= 0) & (true < n)
-    return np.bincount(n * true[k].astype(int) + pred[k], minlength=n ** 2).reshape(n, n)
+    return np.bincount(n * true[k].int() + pred[k], minlength=n ** 2).reshape(n, n)
 
 
 def per_class_iou(hist:np.ndarray)->np.ndarray:
