@@ -3,6 +3,5 @@ numpy
 torch
 torchvision
 matplotlib
-scikit-learn
 gdown 
 wandb
