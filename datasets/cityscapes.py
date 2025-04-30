@@ -1,16 +1,13 @@
 import os
+import torch
 from torch.utils.data import Dataset
-from torchvision.io import decode_png, decode_image 
+from torchvision.io import decode_image
 from torchvision.transforms import ToPILImage
 
-
-
 class CityScapes(Dataset):
-    _color = '_gtFine_color.png'
     _label = '_gtFine_labelTrainIds.png'
     _keyPathFinal = 'images'
     _valuePathFinal = 'gtFine'
-
 
     def __init__(self, path_dir: str, transform=None, targetTransfrom=None) -> None:
         """
@@ -30,42 +27,38 @@ class CityScapes(Dataset):
 
         prefixKey, prefixValue = os.path.join(path_dir, self._keyPathFinal, prefix), os.path.join(path_dir, self._valuePathFinal, prefix)
 
-        self._images = {os.path.join(prefixKey, folder, photo):[os.path.join(prefixValue, folder, '_'.join(photo.split("_")[:-1])) + CityScapes._color,
-                                                            os.path.join(prefixValue, folder, '_'.join(photo.split("_")[:-1])) + CityScapes._label]
+        # Note: now it creates a dictionary in the form index:[pathToSourceImage, pathToCorrespoingMask]
+        self._images = {os.path.join(prefixKey, folder, photo):os.path.join(prefixValue, folder, '_'.join(photo.split("_")[:-1])) + CityScapes._label
                         for folder in os.listdir(prefixKey) for photo in os.listdir(os.path.join(prefixKey, folder)) if photo.endswith('.png')}
 
-        self._index = {i:key for i, key in enumerate(sorted(self._images.keys()))}
+        self._images = {i:[key, self._images[key]] for i, key in enumerate(sorted(self._images.keys()))}
 
 
     def __getitem__(self, idx:int):
         """
-        Loads the image and its corresponding label given the path.
+        Loads the image and its corresponding label given the index.
 
         Args:
-            idx (int): path to the image.
+            idx (int): index of the image.
 
         Returns:
             images (list[torch.Tensor]): list containing the image and its corresponding label as torch tensor.
                 - image (torch.Tensor): image as torch tensor.
-                - color (torch.Tensor): color label as torch tensor.
                 - mask label (torch.Tensor): mask label as torch tensor.
         """
-        idx, toPil = self._index[idx], ToPILImage()
 
-        image = decode_png(idx)
-        color = decode_png(self._images[idx][0])
-        mask =  decode_png(self._images[idx][1])
+        toPil = ToPILImage()
+
+        image = decode_image(self._images[idx][0]).to(dtype=torch.uint8)
+        mask =  decode_image(self._images[idx][1]).to(dtype=torch.uint8)
 
         if self._transform:
             image = self._transform(toPil(image))
 
         if self._targetTransfrom:
-            color = self._targetTransfrom(toPil(color))
             mask = self._targetTransfrom(toPil(mask))
 
-        return image, color, mask
-
-
+        return image, mask
 
     def __len__(self)->int:
         """returns the number of images in the dataset.
@@ -74,6 +67,3 @@ class CityScapes(Dataset):
             length (int) : number of images in the dataset.
         """
         return len(self._images)
-
-    def printDict(self):
-      return self._images
