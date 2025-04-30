@@ -71,5 +71,5 @@ def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=N
         train_loader (DataLoader): dataLoader for the training set.
         val_loader (DataLoader): dataLoader for the validation set.
     """
-    return DataLoader(GTA5('data/GTA5', transform=transform_train, targetTransfrom=transform_groundTruth),
+    return DataLoader(GTA5('data/GTA5', transform=transform_train, transformTarget=transform_groundTruth),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory)
