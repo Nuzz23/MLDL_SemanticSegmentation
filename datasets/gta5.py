@@ -1,22 +1,66 @@
+import os
+import torch
 from torch.utils.data import Dataset
-
-# TODO: implement here your custom dataset class for GTA5
-
+from torchvision.io import decode_image
+from torchvision.transforms import ToPILImage
 
 class GTA5(Dataset):
-    def __init__(self):
+    _label = 'labels'
+    _images = 'images'
+    
+    def __init__(self, path:str, transform=None, transformTarget=None)-> None:
+        """
+        Loads the GTA5 dataset given the path to the directory containing the dataset.
+        
+        Args:
+            path (str): path to the directory containing the dataset.
+            transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
+            transformTarget (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
+        """
+        
         super(GTA5, self).__init__()
-        # TODO
+        self._transform = transform
+        self._transformTarget = transformTarget
+        
+        imagePath = os.path.join(path, GTA5._images)
+        labelPath = os.path.join(path, GTA5._label)
+        
+        self._images = {i:[os.path.join(imagePath, image), os.path.join(labelPath, image)]    
+                        for i, image in enumerate(sorted(os.listdir(imagePath))) if image.endswith('.png')}
+        
 
-        pass
+    def __getitem__(self, idx:int)->torch.Tensor:
+        """
+        Loads the image and its corresponding label given the index.
+        
+        Args:
+            idx (int): index of the image.
+            
+        Returns:
+            images (list[torch.Tensor]): list containing the image and its corresponding label as torch tensor.
+                - image (torch.Tensor): image as torch tensor.
+                - mask label (torch.Tensor): mask label as torch tensor.
+        """
+        
+        toPil = ToPILImage()
+        
+        image = decode_image(self._images[idx][0]).to(dtype=torch.uint8)
+        mask =  decode_image(self._images[idx][1]).to(dtype=torch.uint8)
 
-    def __getitem__(self, idx):
-        # TODO
+        if self._transform:
+            image = self._transform(toPil(image))
 
-        pass
+        if self._transformTarget:
+            mask = self._transformTarget(toPil(mask))
 
-    def __len__(self):
-
-        # TODO
-
-        pass
+        return image, mask
+        
+        
+    def __len__(self)->int:
+        """
+        Returns the number of images in the dataset.
+        
+        Returns:
+            int: number of images in the dataset.
+        """
+        return len(self._images)

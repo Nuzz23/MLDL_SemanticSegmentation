@@ -1,6 +1,7 @@
 import torch
 from utils import meanIoULoss, print_mask, dice_loss_from_logits
 
+# %% TRAINING
 
 def trainDeepLabV2(epoch, model, train_loader, criterion, optimizer, enablePrint:bool=False)->float:
     model.train()
@@ -63,17 +64,9 @@ def trainBiSeNet(epoch, model, train_loader, criterion, optimizer, enablePrint:b
     return sum(mIoU)/len(mIoU) if len(mIoU) else 0
 
 
+# %% VALIDATION
 
-def validate():
-    pass
-
-
-
-def validate(model, val_loader, criterion, enablePrint:bool=False)->float:
-    raise NotImplementedError("This function is not implemented yet.")
-    
-    
-    
+def validateDeepLabV2(model, val_loader, criterion, enablePrint:bool=False)->float:
     model.eval()
     mIoU = []
 
@@ -96,11 +89,7 @@ def validate(model, val_loader, criterion, enablePrint:bool=False)->float:
     return sum(mIoU)/len(mIoU) if len(mIoU) else 0
 
 
-
-
-def validate(model, val_loader, criterion, enablePrint:bool=False)->float:
-    raise NotImplementedError("This function is not implemented yet.")
-    
+def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False)->float:
     model.eval()
     mIoU = []
 
