@@ -1,7 +1,4 @@
 import torch
-
-
-from models.deeplabv2.deeplabv2 import DeepLabV2
 from utils import meanIoULoss, print_mask, dice_loss_from_logits
 
 
