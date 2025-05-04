@@ -1,24 +1,27 @@
-import os
-import torch
+import os, torch
 from torch.utils.data import Dataset
 from torchvision.io import decode_image
 from torchvision.transforms import ToPILImage
+from datasets.labelConverter import convertLabels
+
 
 class GTA5(Dataset):
     _label = 'labels'
     _images = 'images'
     
-    def __init__(self, path:str, transform=None, transformTarget=None)-> None:
+    def __init__(self, path:str, convertLabels:bool=True, transform=None, transformTarget=None)-> None:
         """
         Loads the GTA5 dataset given the path to the directory containing the dataset.
         
         Args:
             path (str): path to the directory containing the dataset.
+            convertLabels (bool, optional): whether to convert the labels or not. Defaults to True.
             transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
             transformTarget (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
         """
         
         super(GTA5, self).__init__()
+        self._convertLabels = convertLabels
         self._transform = transform
         self._transformTarget = transformTarget
         
@@ -52,6 +55,9 @@ class GTA5(Dataset):
 
         if self._transformTarget:
             mask = self._transformTarget(toPil(mask))
+        
+        if self._convertLabels:
+            mask = convertLabels(mask[0], True).unsqueeze(0).to(dtype=torch.uint8)
 
         return image, mask
         

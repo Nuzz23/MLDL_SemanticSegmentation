@@ -3,15 +3,14 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn.functional as F
 
-def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
-                      max_iter=300, power=0.9):
+def poly_lr_scheduler(optimizer, init_lr: float, iter: int, lr_decay_iter: float = 1, max_iter: int = 300, power: float = 0.9):
     """Polynomial decay of learning rate
 
     Args:
         optimizer (torch.optim.Optimizer): optimizer
         init_lr (float): initial learning rate
         iter (int): current iteration
-        lr_decay_iter (int, optional): decay iteration. Defaults to 1.
+        lr_decay_iter (float, optional): decay iteration. Defaults to 1.
         max_iter (int, optional): maximum iterations. Defaults to 300.
         power (float, optional): power for polynomial decay. Defaults to 0.9.
 
@@ -19,7 +18,7 @@ def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
         learning rate (float): current learning rate
     """
     if (iter % lr_decay_iter == 0) and (iter < max_iter):
-      optimizer.param_groups[0]['lr'] = init_lr*(1 - iter/max_iter)**power
+      optimizer.param_groups[0]['lr'] = init_lr * (1 - iter / max_iter) ** power
 
     return optimizer.param_groups[0]['lr']
 
