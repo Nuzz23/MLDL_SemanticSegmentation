@@ -1,5 +1,4 @@
-import os
-import torch
+import os, torch
 from torch.utils.data import Dataset
 from torchvision.io import decode_image
 from torchvision.transforms import ToPILImage
@@ -9,7 +8,7 @@ class CityScapes(Dataset):
     _keyPathFinal = 'images'
     _valuePathFinal = 'gtFine'
 
-    def __init__(self, path_dir: str, transform=None, targetTransfrom=None) -> None:
+    def __init__(self, path_dir: str, transform=None, targetTransform=None) -> None:
         """
         Loads the CityScapes dataset given the path to the directory containing the dataset.
 
@@ -20,14 +19,14 @@ class CityScapes(Dataset):
         """
         super(CityScapes, self).__init__()
         self._transform = transform
-        self._targetTransfrom = targetTransfrom
+        self._targetTransform= targetTransform
 
         prefix =  path_dir.split("/")[-1].strip()
         path_dir = '/'.join(path_dir.split("/")[:-2])
 
         prefixKey, prefixValue = os.path.join(path_dir, self._keyPathFinal, prefix), os.path.join(path_dir, self._valuePathFinal, prefix)
 
-        # Note: now it creates a dictionary in the form index:[pathToSourceImage, pathToCorrespoingMask]
+        # Note: now it creates a dictionary in the form index:[pathToSourceImage, pathToCorrespondingMask]
         self._images = {os.path.join(prefixKey, folder, photo):os.path.join(prefixValue, folder, '_'.join(photo.split("_")[:-1])) + CityScapes._label
                         for folder in os.listdir(prefixKey) for photo in os.listdir(os.path.join(prefixKey, folder)) if photo.endswith('.png')}
 
@@ -55,8 +54,8 @@ class CityScapes(Dataset):
         if self._transform:
             image = self._transform(toPil(image))
 
-        if self._targetTransfrom:
-            mask = self._targetTransfrom(toPil(mask))
+        if self._targetTransform:
+            mask = self._targetTransform(toPil(mask))
 
         return image, mask
 

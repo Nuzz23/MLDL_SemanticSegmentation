@@ -20,13 +20,12 @@ def transformation(width:int=1024, height:int=512):
       - transformations to the mask tensor
   """
   return T.Compose([
-      T.Resize((height, width)), # 1. Reshape all images to 224x224 (though some models may require different sizes)
-      T.ToTensor(), # 2. Turn image values to between 0 & 1
-      T.Normalize(mean=[0.485, 0.456, 0.406], # 3. A mean of [0.485, 0.456, 0.406] (across each colour channel)
-                          std=[0.229, 0.224, 0.225]) # 4. A standard deviation of [0.229, 0.224, 0.225] (across each colour channel),
+      T.Resize((height, width)), 
+      T.ToTensor(),
+      T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) 
     ]),  T.Compose([
-      T.Resize((height, width),interpolation=T.InterpolationMode.NEAREST), # 1. Reshape all images to 224x224 (though some models may require different sizes)
-      T.ToTensor() , # 2. Turn image values to between 0 & 1
+      T.Resize((height, width),interpolation=T.InterpolationMode.NEAREST),
+      T.ToTensor(), 
       T.Lambda(lambda x: (x * 255).to(torch.uint8))
     ])
 
@@ -47,10 +46,10 @@ def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_trai
         val_loader (DataLoader): dataLoader for the validation set.
     """
     return (DataLoader(CityScapes('data/Cityscapes/Cityspaces/images/train',
-                                  transform=transform_train, targetTransfrom=transform_groundTruth),
+                                  transform=transform_train, targetTransform=transform_groundTruth),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory),
       DataLoader(CityScapes('data/Cityscapes/Cityspaces/images/val',
-                            transform=transform_train, targetTransfrom=transform_groundTruth),
+                            transform=transform_train, targetTransform=transform_groundTruth),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory))
     
     
