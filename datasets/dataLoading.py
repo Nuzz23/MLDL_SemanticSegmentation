@@ -6,7 +6,7 @@ from datasets.gta5 import GTA5
 
 
 # %% CityScapes
-def transformation(width:int=1024, height:int=512):
+def transformationCityScapes(width:int=1024, height:int=512)->tuple[T.Compose]:
   """
   Defines the transformation to be applied to the image
 
@@ -29,8 +29,7 @@ def transformation(width:int=1024, height:int=512):
       T.Lambda(lambda x: (x * 255).to(torch.uint8))
     ])
 
-
-def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_train=None, transform_groundTruth=None):
+def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_train=None, transform_groundTruth=None)->tuple[DataLoader, DataLoader]:
     """
     Loads the CityScapes dataset given the path to the directory containing the dataset.
 
@@ -38,8 +37,8 @@ def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_trai
         batch_size (int): batch size of the dataLoader.
         num_workers (int): number of workers of the dataLoader.
         pin_memory (bool): whether to pin memory of the dataLoader or not.
-        transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
-        targetTransfrom (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
+        transform_train (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
+        transform_groundTruth (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
 
     Returns:
         train_loader (DataLoader): dataLoader for the training set.
@@ -55,6 +54,30 @@ def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_trai
     
 
 # %% GTA5
+def transformationGTA5(width:int=1280, height:int=712)->tuple[T.Compose]:
+  """
+  Defines the transformation to be applied to the image
+
+  Args:
+    width (int): width of the image. Defaults to 1280.
+    height (int): height of the image. Defaults to 712.
+
+  Returns:
+    transformations (tuple[T.Compose]): composed transformation.
+      - transformations to the input tensor
+      - transformations to the mask tensor
+  """
+  return T.Compose([
+      T.Resize((height, width)), 
+      T.ToTensor(),
+      T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) 
+    ]),  T.Compose([
+      T.Resize((height, width),interpolation=T.InterpolationMode.NEAREST),
+      T.ToTensor(), 
+      T.Lambda(lambda x: (x * 255).to(torch.uint8))
+    ])
+
+
 def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=None, transform_groundTruth=None)->DataLoader:
     """
     Loads the GTA5 dataset given the path to the directory containing the dataset.
@@ -63,8 +86,8 @@ def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=N
         batch_size (int): batch size of the dataLoader.
         num_workers (int): number of workers of the dataLoader.
         pin_memory (bool): whether to pin memory of the dataLoader or not.
-        transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
-        targetTransfrom (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
+        transform_train (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
+        transform_groundTruth (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
 
     Returns:
         train_loader (DataLoader): dataLoader for the training set.
