@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import torch
 
+
 class BaseTransformation(ABC):
     def __init__(self, p: float = 0.5) -> None:
         """
