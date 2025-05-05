@@ -3,13 +3,15 @@ from torch.utils.data import Dataset
 from torchvision.io import decode_image
 from torchvision.transforms import ToPILImage
 from datasets.labelConverter import convertLabels
+from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
 
 
 class GTA5(Dataset):
     _label = 'labels'
     _images = 'images'
     
-    def __init__(self, path:str, convertLabels:bool=True, transform=None, transformTarget=None)-> None:
+    def __init__(self, path:str, convertLabels:bool=True, transform=None, transformTarget=None, 
+                    aug:BaseTransformation|list[BaseTransformation]=None)-> None:
         """
         Loads the GTA5 dataset given the path to the directory containing the dataset.
         
@@ -18,12 +20,15 @@ class GTA5(Dataset):
             convertLabels (bool, optional): whether to convert the labels or not. Defaults to True.
             transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
             transformTarget (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
+            aug (BaseTransformation|list[BaseTransformation], optional): augmentation to apply, if a list of augmentations is given
+                they will all be applied. Defaults to None.
         """
         
         super(GTA5, self).__init__()
         self._convertLabels = convertLabels
         self._transform = transform
         self._transformTarget = transformTarget
+        self._aug = aug
         
         imagePath = os.path.join(path, GTA5._images)
         labelPath = os.path.join(path, GTA5._label)
@@ -58,6 +63,14 @@ class GTA5(Dataset):
         
         if self._convertLabels:
             mask = convertLabels(mask[0], True).unsqueeze(0).to(dtype=torch.uint8)
+            
+            
+        if self._aug:
+            if isinstance(self._aug, list):
+                for aug in self._aug:
+                    image = aug.transform(image)
+            else:
+                image = self._aug.transform(image)
 
         return image, mask
         
