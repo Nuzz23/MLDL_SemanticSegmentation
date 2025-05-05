@@ -22,20 +22,22 @@ class SaltAndPepper(BaseTransformation):
         self.__amount = amount
 
 
-    def transform(self, image: torch.Tensor) -> torch.Tensor:
+    def transform(self, image: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         """
         Applies salt and pepper noise to the image if the probability is met.
 
         Args:
             image (torch.Tensor): image to be transformed.
+            mask (torch.Tensor): mask to be transformed.
 
         Returns:
             transformedImage (torch.Tensor): transformed image.
+            mask (torch.Tensor): transformed mask.
         """
         if torch.rand(1).item() < super().getProbability():
-            return self.__salt_and_pepper(image)
+            return self.__salt_and_pepper(image), mask
 
-        return image
+        return image, mask
     
     
     def __salt_and_pepper(self, image: torch.Tensor) -> torch.Tensor:
