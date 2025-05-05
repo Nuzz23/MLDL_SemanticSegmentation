@@ -3,6 +3,7 @@ from torchvision import transforms as T
 from datasets.cityscapes import CityScapes
 from torch.utils.data import DataLoader
 from datasets.gta5 import GTA5
+from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
 
 
 # %% CityScapes
@@ -50,17 +51,16 @@ def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_trai
       DataLoader(CityScapes('data/Cityscapes/Cityspaces/images/val',
                             transform=transform_train, targetTransform=transform_groundTruth),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory))
-    
-    
+
 
 # %% GTA5
-def transformationGTA5(width:int=1280, height:int=712)->tuple[T.Compose]:
+def transformationGTA5(width:int=1280, height:int=720)->tuple[T.Compose]:
   """
   Defines the transformation to be applied to the image
 
   Args:
     width (int): width of the image. Defaults to 1280.
-    height (int): height of the image. Defaults to 712.
+    height (int): height of the image. Defaults to 720.
 
   Returns:
     transformations (tuple[T.Compose]): composed transformation.
@@ -78,7 +78,8 @@ def transformationGTA5(width:int=1280, height:int=712)->tuple[T.Compose]:
     ])
 
 
-def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=None, transform_groundTruth=None)->DataLoader:
+def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=None, transform_groundTruth=None,
+              augmentation:BaseTransformation|None=None, convertLabels:bool=True)->DataLoader:
     """
     Loads the GTA5 dataset given the path to the directory containing the dataset.
 
@@ -88,10 +89,13 @@ def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=N
         pin_memory (bool): whether to pin memory of the dataLoader or not.
         transform_train (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
         transform_groundTruth (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
+        augmentation (BaseTransformation|None, optional): augmentation to apply, if a list of augmentations is given
+            they will all be applied. Defaults to None.
+        convertLabels (bool, optional): whether to convert the labels or not. Defaults to True.
 
     Returns:
         train_loader (DataLoader): dataLoader for the training set.
         val_loader (DataLoader): dataLoader for the validation set.
     """
-    return DataLoader(GTA5('data/GTA5', transform=transform_train, transformTarget=transform_groundTruth),
+    return DataLoader(GTA5('data/GTA5', transform=transform_train, transformTarget=transform_groundTruth, aug=augmentation, convertLabels=convertLabels),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory)
