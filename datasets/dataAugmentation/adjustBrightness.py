@@ -25,21 +25,23 @@ class AdjustBrightness(BaseTransformation):
         self.__brightness_factor = brightness_factor
         
         
-    def transform(self, image: torch.Tensor) -> torch.Tensor:
+    def transform(self, image: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         """
         Applies brightness adjustment to the image if the probability is met.
         
         Args:
             image (torch.Tensor): image to be transformed.
+            mask (torch.Tensor): mask to be transformed.
             
         Returns:
             transformedImage (torch.Tensor): transformed image.
+            mask (torch.Tensor): transformed mask.
         """
         
         if torch.rand(1).item() < super().getProbability():
-            return image * self.__brightness_factor 
+            return image * self.__brightness_factor, mask 
             
-        return image
+        return image, mask
     
     
     def __repr__(self) -> str:

@@ -26,21 +26,23 @@ class GaussianBlur(BaseTransformation):
         self.__sigma = sigma
         
         
-    def transform(self, image: torch.Tensor) -> torch.Tensor:
+    def transform(self, image: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         """
         Applies Gaussian blur to the image if the probability is met.
         
         Args:
             image (torch.Tensor): image to be transformed.
+            mask (torch.Tensor): mask to be transformed.
             
         Returns:
             transformedImage (torch.Tensor): transformed image.
+            mask (torch.Tensor): mask to be transformed.
         """ 
         
         if torch.rand(1).item() < super().getProbability():
-            return TorchGaussianBlur(kernel_size=self.__kernel_size, sigma=self.__sigma)(image)
+            return TorchGaussianBlur(kernel_size=self.__kernel_size, sigma=self.__sigma)(image), mask
         
-        return image
+        return image, mask
     
     def __repr__(self) -> str:
         return f"GaussianBlur(p={super().getProbability()}, kernel_size={self.__kernel_size}, sigma={self.__sigma})"

@@ -64,13 +64,12 @@ class GTA5(Dataset):
         if self._convertLabels:
             mask = convertLabels(mask[0], True).unsqueeze(0).to(dtype=torch.uint8)
             
-            
         if self._aug:
             if isinstance(self._aug, list):
                 for aug in self._aug:
-                    image = aug.transform(image)
+                    image, mask = aug.transform(image, mask)
             else:
-                image = self._aug.transform(image)
+                image, mask = self._aug.transform(image, mask)
 
         return image, mask
         

@@ -15,20 +15,22 @@ class HorizontalFlip(BaseTransformation):
         """
         super(HorizontalFlip, self).__init__(p=p)
 
-    def transform(self, image:torch.Tensor) -> torch.Tensor:
+    def transform(self, image:torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         """
         Applies horizontal flip to the image if the probability is met.
 
         Args:
             image (torch.Tensor): image to be flipped.
+            mask (torch.Tensor): mask to be flipped.
 
         Returns:
             flippedImage (torch.Tensor): flipped image.
+            flippedMask (torch.Tensor): flipped mask.
         """
         if torch.rand(1).item() < super().getProbability():
-            return torch.flip(image, [2])
+            return torch.flip(image, [2]), torch.flip(mask, [2])
         
-        return image
+        return image, mask
     
     
     def __repr__(self) -> str:
