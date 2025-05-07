@@ -1,6 +1,6 @@
 import torch
 
-def convertLabels(data, mode:bool=True)->torch.Tensor:
+def convertLabels(data: torch.Tensor, mode:bool=True)->torch.Tensor:
     """
     Converts the labels of the data to the format required by the model.
 
@@ -10,7 +10,7 @@ def convertLabels(data, mode:bool=True)->torch.Tensor:
             If False, converts the labels from CityScapes labels to gta V labels. Defaults to True.
 
     Returns:
-        labels (torch.Tensor): The converted labels tensor.
+        convertedLabels (torch.Tensor): The converted labels tensor.
     """
 
     labels =    {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11,
