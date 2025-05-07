@@ -2,20 +2,21 @@ import os, torch
 from torch.utils.data import Dataset
 from torchvision.io import decode_image
 from torchvision.transforms import ToPILImage
+import torchvision.transforms as T
 
 class CityScapes(Dataset):
     _label = '_gtFine_labelTrainIds.png'
     _keyPathFinal = 'images'
     _valuePathFinal = 'gtFine'
 
-    def __init__(self, path_dir: str, transform=None, targetTransform=None) -> None:
+    def __init__(self, path_dir: str, transform:T=None, targetTransform:T=None) -> None:
         """
         Loads the CityScapes dataset given the path to the directory containing the dataset.
-
 
         Args:
             path_dir (str): path to the directory containing the dataset.
             transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
+            targetTransform (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
         """
         super(CityScapes, self).__init__()
         self._transform = transform
@@ -58,6 +59,7 @@ class CityScapes(Dataset):
             mask = self._targetTransform(toPil(mask))
 
         return image, mask
+
 
     def __len__(self)->int:
         """returns the number of images in the dataset.

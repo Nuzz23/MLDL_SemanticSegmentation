@@ -30,7 +30,7 @@ def transformationCityScapes(width:int=1024, height:int=512)->tuple[T.Compose]:
       T.Lambda(lambda x: (x * 255).to(torch.uint8))
     ])
 
-def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_train=None, transform_groundTruth=None)->tuple[DataLoader, DataLoader]:
+def loadData(batch_size: int, num_workers: int, pin_memory: bool, transform_train: T=None, transform_groundTruth: T=None)->tuple[DataLoader, DataLoader]:
     """
     Loads the CityScapes dataset given the path to the directory containing the dataset.
 
