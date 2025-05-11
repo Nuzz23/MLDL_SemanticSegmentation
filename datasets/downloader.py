@@ -1,6 +1,6 @@
-import subprocess, os, gc
+import subprocess
 
-class Downloader:
+class Downloader():
     CITYSCAPES_LINK = [
         "1uINto6zVV0VY9h380Pnprt_PR0izLfzW",
         "1O8VGxrdRgRCt8lw36SXFNPIvfYnDZvOs",
