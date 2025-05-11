@@ -21,23 +21,23 @@ class ColorJitter(BaseTransformation):
         3. contrast
         4. hue
     """
-    def __init__(self, p: float = 0.5, brightness: float|None = 0.5, contrast: float|None = 0.6, saturation: float|tuple[float]|None = (2, 4.5), 
-                    hue: float|None = 0.1) -> None:
+    def __init__(self, p: float = 0.5, brightness: float|None = None, contrast: float|None = None, saturation: float|tuple[float]|None = None, 
+                    hue: float|None = None) -> None:
         """ 
         Initializes the ColorJitter class.
         
         Args:
             p (float, optional): probability of applying the transformation. Defaults to 0.5.
-            brightness (float|None, optional): brightness factor. Defaults to 0.5.
+            brightness (float|None, optional): brightness factor. Defaults to None.
                 Note: brightness factor must be between 0 and 1.
                 A value of 0.5 will make the image half as bright, while a value of 1 will keep it unchanged.
                 A value of 0 will make the image completely black.
                 Note: can be None to disable brightness adjustment.
-            contrast (float|None, optional): contrast factor. Defaults to 0.6.
+            contrast (float|None, optional): contrast factor. Defaults to None.
                 Note: can be None to disable contrast adjustment.
-            saturation (float|tuple[float]|None, optional): saturation factor. Defaults to (2, 4.5).
+            saturation (float|tuple[float]|None, optional): saturation factor. Defaults to None.
                 Note: can be None to disable saturation adjustment.
-            hue (float|None, optional): hue factor. Defaults to 0.1.
+            hue (float|None, optional): hue factor. Defaults to None.
                 Note: can be None to disable hue adjustment.
         """
         super().__init__(p)
