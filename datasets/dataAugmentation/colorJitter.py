@@ -3,32 +3,43 @@ from torchvision.transforms import ColorJitter as TorchColorJitter
 import torch
 
 class ColorJitter(BaseTransformation):
-    def __init__(self, p: float = 0.5, brightness: float = 0.2, contrast: float = 0.2, saturation: float = 0.2, hue: float = 0.1) -> None:
-        """
+    """Applies color jitter to the image.
+    Moreover, each transformation can be switched off by setting it to None or 0.
+    - Brightness: it will adjust the brightness of the image, making it brighter or darker randomly, 
+        the value tells only how drastic the change is, recommended between [0.5, 0.75].
+    - Contrast: it will adjust the contrast of the image, making it more or less contrasted randomly,
+        (ie colors will be more or less vivid), the value tells only how drastic the change is, recommended between [0.4, 0.85].
+    - Saturation: it will adjust the saturation of the image, making it more or less saturated randomly,
+        (ie colors will be more or less vivid), the value tells only how drastic the change is, recommended between [(1.5, 4), (2.5, 6)].
+    - Hue: it will adjust the hue of the image, making it more or less RGB randomly,
+        (ie colors will tend more to red, blue or green), the value tells only how drastic the change is, recommended between [0.1, 0.12].   
+    
+    
+    **NOTE**: the following order is the order of transformation effects that are more realistic (ie more similar to the real world):
+        1. brightness
+        2. saturation
+        3. contrast
+        4. hue
+    """
+    def __init__(self, p: float = 0.5, brightness: float|None = 0.5, contrast: float|None = 0.6, saturation: float|tuple[float]|None = (2, 4.5), 
+                    hue: float|None = 0.1) -> None:
+        """ 
         Initializes the ColorJitter class.
         
         Args:
             p (float, optional): probability of applying the transformation. Defaults to 0.5.
-            brightness (float, optional): brightness factor. Defaults to 0.2.
+            brightness (float|None, optional): brightness factor. Defaults to 0.5.
                 Note: brightness factor must be between 0 and 1.
                 A value of 0.5 will make the image half as bright, while a value of 1 will keep it unchanged.
                 A value of 0 will make the image completely black.
-            contrast (float, optional): contrast factor. Defaults to 0.2.
-                Note: contrast factor must be between 0 and 1.
-            saturation (float, optional): saturation factor. Defaults to 0.2.
-                Note: saturation factor must be between 0 and 1.
-            hue (float, optional): hue factor. Defaults to 0.1.
-                Note: hue factor must be between -0.5 and 0.5.
+                Note: can be None to disable brightness adjustment.
+            contrast (float|None, optional): contrast factor. Defaults to 0.6.
+                Note: can be None to disable contrast adjustment.
+            saturation (float|tuple[float]|None, optional): saturation factor. Defaults to (2, 4.5).
+                Note: can be None to disable saturation adjustment.
+            hue (float|None, optional): hue factor. Defaults to 0.1.
+                Note: can be None to disable hue adjustment.
         """
-        
-        if brightness < 0 or brightness > 1:
-            raise ValueError("Brightness factor must be between 0 and 1")
-        if contrast < 0 or contrast > 1:
-            raise ValueError("Contrast factor must be between 0 and 1")
-        if saturation < 0 or saturation > 1:
-            raise ValueError("Saturation factor must be between 0 and 1")
-        if hue < -0.5 or hue > 0.5:
-            raise ValueError("Hue factor must be between -0.5 and 0.5")
         super().__init__(p)
         self.__brightness = brightness
         self.__contrast = contrast
