@@ -124,3 +124,4 @@
 2,0.2580131261706352,0.1800032557249069,0.0048196346062927544,ColorJitter(p=0.5, brightness=0, contrast=0.7, saturation=0, hue=0)
 3,0.27818098204135894,0.13986003041267395,0.004729171596893161,ColorJitter(p=0.5, brightness=0, contrast=0.7, saturation=0, hue=0)
 0,0.16460854624658822,0.12336205631494522,0.005,ColorJitter(p=0.5, brightness=0, contrast=0.7, saturation=0, hue=0)
+0,0.16637557535916567,0.1331826664209366,0.005,ColorJitter(p=0.5, brightness=0, contrast=0.7, saturation=0, hue=0)
