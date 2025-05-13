@@ -90,6 +90,7 @@ def perClassIoU(true,pred, n:int=19):
     # print(per_class_iou(fast_hist(true, pred, n)).shape)
     return per_class_iou(fast_hist(true, pred, n)), [i in true.unique() for i in range(n)]
 
+
 def printHistIou(hist, presentClasses =[range(19)] )->None:
     """
         Visualizes the histograms for Intersection over Union (IoU) calculation.

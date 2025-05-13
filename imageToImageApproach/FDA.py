@@ -29,14 +29,17 @@ def FDASourceToTarget(source: torch.Tensor, target: torch.Tensor, beta:float=0.0
     """
     source, target = source.clone(), target.clone()
     
-    fftSource, fftTarget = torch.fft.fft2(source, dim=(-2, -1)),torch.fft.fft2(target, dim=(-2, -1))  
+    fftSource = torch.fft.fft2(source, dim=(-2, -1))
+    fftTarget = torch.fft.fft2(target, dim=(-2, -1))  
     
     ampSource, phaSource = extractAmplitudePhase(fftSource)
     ampTarget, _ = extractAmplitudePhase(fftTarget)
 
+    # I take the modified amplitude given by the swapLowFrequencies function and the phase of the source image
     amp_src = swapLowFrequencies(ampSource, ampTarget, beta)
 
-    return torch.fft.ifft2(amp_src*torch.exp(1j*phaSource))
+    # this is done using the following formula: |Amplitude| * exp(j*Phase)
+    return torch.abs(torch.fft.ifft2(amp_src*torch.exp(1j*phaSource)))  
 
 
 def swapLowFrequencies(ampSource:torch.Tensor, ampTarget:torch.Tensor, beta:float=0.1)->torch.Tensor:
@@ -51,8 +54,7 @@ def swapLowFrequencies(ampSource:torch.Tensor, ampTarget:torch.Tensor, beta:floa
     Returns:
         swappedAmpSource (torch.Tensor): Amplitude of the source image with swapped low frequencies.
     """
-
-    b = (np.floor(np.amin(ampSource.shape[-2:])*beta)).astype(int)  
+    b = int(np.min(ampSource.shape[-2:])*beta)  
 
     ampSource[:,:,0:b,0:b] = ampTarget[:,:,0:b,0:b]
     return ampSource 
