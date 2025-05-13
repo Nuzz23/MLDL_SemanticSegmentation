@@ -99,3 +99,31 @@ def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=N
     """
     return DataLoader(GTA5('data/GTA5', transform=transform_train, transformTarget=transform_groundTruth, aug=augmentation, convertLabels=convertLabels),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory)
+    
+    
+# %% Basic Transformations
+def transformNoNormalize(width:int=1280, height:int=720, normalizeMean: bool=False)->tuple[T.Compose]:
+  """
+  Defines the transformation to be applied to the image without normalization
+  (used for the DACS method).
+
+  Args:
+    width (int): width of the image. Defaults to 1280.
+    height (int): height of the image. Defaults to 720.
+    normalizeMean (bool): whether to normalize the image or not. Defaults to False.
+      If True, the image will be normalized using the mean and std of the ImageNet dataset.
+
+  Returns:
+    transformations (tuple[T.Compose]): composed transformation.
+      - transformations to the input tensor
+      - transformations to the mask tensor
+  """
+  return T.Compose([
+      T.Resize((height, width)), 
+      T.ToTensor(),
+      T.Normalize(mean=[0.485, 0.456, 0.406], std=[1,1,1]) if normalizeMean else T.Lambda(lambda x: x)
+    ]),  T.Compose([
+      T.Resize((height, width),interpolation=T.InterpolationMode.NEAREST),
+      T.ToTensor(), 
+      T.Lambda(lambda x: (x * 255).to(torch.uint8))
+    ])

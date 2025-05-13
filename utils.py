@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn.functional as F
 
+# %% Function to compute the learning rate decay
+
 def poly_lr_scheduler(optimizer, init_lr: float, iter: int, lr_decay_iter: float = 1, max_iter: int = 300, power: float = 0.9):
     """Polynomial decay of learning rate
 
@@ -22,6 +24,8 @@ def poly_lr_scheduler(optimizer, init_lr: float, iter: int, lr_decay_iter: float
 
     return optimizer.param_groups[0]['lr']
 
+
+# %% Function to compute the mean Intersection over Union (IoU) loss
 
 def fast_hist(true, pred, n:int):
     """Fast histogram for computing confusion matrix
@@ -90,46 +94,6 @@ def perClassIoU(true,pred, n:int=19):
     # print(per_class_iou(fast_hist(true, pred, n)).shape)
     return per_class_iou(fast_hist(true, pred, n)), [i in true.unique() for i in range(n)]
 
-
-def printHistIou(hist, presentClasses =[range(19)] )->None:
-    """
-        Visualizes the histograms for Intersection over Union (IoU) calculation.
-    
-    Args:
-        hist vecotr of the percentage for the classes
-        presentClasses (list, optional): List of the classes that are present in the true labels. Defaults to [range(19)].
-    """
-    class_names = [
-            'Road', 'Sidewalk', 'Building', 'Wall', 'Fence', 'Pole', 
-            'Traffic Light', 'Traffic Sign', 'Vegetation', 'Terrain', 'Sky', 
-            'Person', 'Rider', 'Car', 'Truck', 'Bus', 'Train', 
-            'Motorcycle', 'Bicycle']
-    
-    # Get labels for x-axis
-    if isinstance(presentClasses, list) and len(presentClasses) == len(hist):
-        x_labels = [class_names[i] if presentClasses[i] else f"{i}-{class_names[i]}" for i in range(len(hist))]
-    else:
-        x_labels = [class_names[i] for i in range(len(hist))]
-    
-    # Plot the histogram
-    plt.figure(figsize=(14, 6))
-    bars = plt.bar(range(len(hist)), hist, color='blue', alpha=0.7)
-    plt.xticks(range(len(hist)), x_labels, rotation=45, ha='right')
-    plt.xlabel('Classes')
-    plt.ylabel('IoU')
-    plt.title('IoU per Class')
-    plt.grid(axis='y')
-    plt.tight_layout()
-    
-    # Add values on top of bars
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2., height + 0.01,
-                f'{height:.2f}', ha='center', va='bottom', rotation=0)
-    
-    plt.show()
-
-
 def dice_loss_from_logits(logits, targets, num_classes:int, smooth:float=1e-6)->torch.Tensor:
     """
     logits: [B, C, H, W] - raw model outputs
@@ -161,6 +125,28 @@ def dice_loss_from_logits(logits, targets, num_classes:int, smooth:float=1e-6)->
 
     dice = (2. * intersection + smooth) / (union + smooth)  # [B, C]
     return 1 - dice.mean()  # average over batch and classes
+
+
+# %% Function to compute the loss for BiSeNet
+def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion) -> torch.Tensor:
+    """
+    Compute the loss for BiSeNet model.
+    
+    Args:
+        pred (torch.Tensor): Model predictions.
+        mask (torch.Tensor): Ground truth masks.
+        criterion: Loss function to compute the loss.
+
+    Returns:
+        loss (torch.Tensor): Computed loss.
+    """
+    loss1 = criterion(pred[0], mask.long())
+    loss2 = criterion(pred[1], mask.long())
+    loss3 = criterion(pred[2], mask.long())
+    return loss1 + loss2 + loss3
+
+
+# %% Function to visualize the segmentation mask
 
 
 def print_mask(mask, title:str="title", numClasses:int=19)->None:
@@ -202,4 +188,43 @@ def print_mask(mask, title:str="title", numClasses:int=19)->None:
     plt.figure()
     plt.imshow(new_mask)
     plt.title(title)
+    plt.show()
+    
+    
+def printHistIou(hist, presentClasses =[range(19)] )->None:
+    """
+        Visualizes the histograms for Intersection over Union (IoU) calculation.
+    
+    Args:
+        hist vecotr of the percentage for the classes
+        presentClasses (list, optional): List of the classes that are present in the true labels. Defaults to [range(19)].
+    """
+    class_names = [
+            'Road', 'Sidewalk', 'Building', 'Wall', 'Fence', 'Pole', 
+            'Traffic Light', 'Traffic Sign', 'Vegetation', 'Terrain', 'Sky', 
+            'Person', 'Rider', 'Car', 'Truck', 'Bus', 'Train', 
+            'Motorcycle', 'Bicycle']
+    
+    # Get labels for x-axis
+    if isinstance(presentClasses, list) and len(presentClasses) == len(hist):
+        x_labels = [class_names[i] if presentClasses[i] else f"{i}-{class_names[i]}" for i in range(len(hist))]
+    else:
+        x_labels = [class_names[i] for i in range(len(hist))]
+    
+    # Plot the histogram
+    plt.figure(figsize=(14, 6))
+    bars = plt.bar(range(len(hist)), hist, color='blue', alpha=0.7)
+    plt.xticks(range(len(hist)), x_labels, rotation=45, ha='right')
+    plt.xlabel('Classes')
+    plt.ylabel('IoU')
+    plt.title('IoU per Class')
+    plt.grid(axis='y')
+    plt.tight_layout()
+    
+    # Add values on top of bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                f'{height:.2f}', ha='center', va='bottom', rotation=0)
+    
     plt.show()

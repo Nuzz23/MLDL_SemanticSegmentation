@@ -29,7 +29,11 @@ class Downloader():
         """
         flag = False
         for link in self.CITYSCAPES_LINK:
-            subprocess.run(["gdown", "--quiet", link, "-O", "CityScapes.zip"],check=True)
+            try:
+                subprocess.run(["gdown", "--quiet", link, "-O", "CityScapes.zip"],check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Error downloading CityScapes dataset: {e} with id {link}")
+                continue
 
             if 'CityScapes.zip' in subprocess.check_output("ls", shell=True).decode('utf-8').split():
                 flag = True
@@ -58,7 +62,11 @@ class Downloader():
         """
         flag = False
         for link in self.GTAV_LINK:
-            subprocess.run(["gdown", "--quiet", link, "-O", "GTA5.zip"],check=True)
+            try:
+                subprocess.run(["gdown", "--quiet", link, "-O", "GTA5.zip"],check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Error downloading GTA5 dataset: {e} with id {link}")
+                continue
 
             if 'GTA5.zip' in subprocess.check_output("ls", shell=True).decode('utf-8').split():
                 flag = True
