@@ -17,12 +17,11 @@ class BaseTransformation(ABC):
         
         Returns:
             probability (float): Probability of applying the transformation.
-        
         """
         return self.__p 
 
     @abstractmethod
-    def transform(self, image: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+    def transform(self, image: torch.Tensor, mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Applies the transformation to the image and mask.
         This method should be implemented by subclasses.
