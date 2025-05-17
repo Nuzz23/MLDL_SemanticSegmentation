@@ -335,3 +335,4 @@
 8,0.36302960731983186,0.21567684888839722,0.00042738705301356716,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1), GaussianBlur(p=0.5, kernel_size=9, sigma=7)]
 9,0.372243451499939,0.2239756041765213,0.00041821775989926696,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1), GaussianBlur(p=0.5, kernel_size=9, sigma=7)]
 10,0.37719683797359466,0.22536591589450836,0.00040902607302542923,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1), GaussianBlur(p=0.5, kernel_size=9, sigma=7)]
+11,0.3813640477180481,0.24410700988769532,0.0003998113756661346,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1), GaussianBlur(p=0.5, kernel_size=9, sigma=7)]
