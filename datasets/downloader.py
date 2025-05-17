@@ -7,7 +7,9 @@ class Downloader():
         "1lCo34lp6BpIvUSwmKO7xbp5hGuXywGFs",
         "1d4rzU3aExnuiooNaAr0miZ_gZmWAEH1x",
         "1lY1VGuE0UKsUGTFNNQf7YweolGzuJoRM",
-        '1o09HNrDi2rNrgZXmfHngGliuqT6xlvDQ'
+        '1o09HNrDi2rNrgZXmfHngGliuqT6xlvDQ',
+        '1sJ85KIaBkjN_6SiXPcsJYqaxfrjrLgX_',
+        '1_0N0415q9cwV9uDKPXbXvJKrretduhph'
     ]
     
     GTAV_LINK = [
@@ -16,7 +18,9 @@ class Downloader():
         '1oDRTmXacw23ksYrjqG8WpPUB-2I7_mb1',
         '1gniMsHTZ5i2L4qjAwrsH5C9394ZzlLgu',
         '1wYvdtQ4dUDeZLp4LF0-PLoxZV-opAiQM',
-        '1fu7Z0DSSJLFQEBx2E8MFfq3sz1TCtwwb'
+        '1fu7Z0DSSJLFQEBx2E8MFfq3sz1TCtwwb',
+        '1sJ85KIaBkjN_6SiXPcsJYqaxfrjrLgX_',
+        '1oxDuTMHCJjhpLh11Oq4G9WUyhU7hVkJ6'
     ]
     
     
