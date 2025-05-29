@@ -79,7 +79,7 @@ def transformationGTA5(width:int=1280, height:int=720)->tuple[T.Compose]:
 
 
 def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=None, transform_groundTruth=None,
-              augmentation:BaseTransformation|None=None, convertLabels:bool=True)->DataLoader:
+              augmentation:BaseTransformation|None=None, convertLabels:bool=True, enableProbability:bool=False)->DataLoader:
     """
     Loads the GTA5 dataset given the path to the directory containing the dataset.
 
@@ -92,12 +92,13 @@ def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=N
         augmentation (BaseTransformation|None, optional): augmentation to apply, if a list of augmentations is given
             they will all be applied. Defaults to None.
         convertLabels (bool, optional): whether to convert the labels or not. Defaults to True.
+        enableProbability (bool, optional): if True, the images will be sampled based on the class frequencies. Defaults to False.
 
     Returns:
         train_loader (DataLoader): dataLoader for the training set.
         val_loader (DataLoader): dataLoader for the validation set.
     """
-    return DataLoader(GTA5('data/GTA5', transform=transform_train, transformTarget=transform_groundTruth, aug=augmentation, convertLabels=convertLabels),
+    return DataLoader(GTA5('data/GTA5', transform=transform_train, transformTarget=transform_groundTruth, aug=augmentation, convertLabels=convertLabels, enableProbability=enableProbability),
                         batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory)
     
     

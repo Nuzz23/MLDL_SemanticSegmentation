@@ -51,9 +51,17 @@ def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720
     return imagesLabel, frequencies
 
 
-def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=720, useOurs:bool=False) -> tuple:
+def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=720, useOurs:bool=False, 
+                                rebuild:bool=False) -> tuple[dict[int, set[int]], dict[int, int]]:
     """
     Load the class frequencies from the saved JSON files.
+    
+    Args:
+        num_classes (int): Number of classes in the dataset. Default is 19.
+        width (int): Width of the images. Default is 1280.
+        height (int): Height of the images. Default is 720.
+        useOurs (bool): If True, uses our function to evaluate everything else uses the paper method of calculating the frequencies. Default is False.
+        rebuild (bool): If True, rebuilds the class frequencies even if the JSON files already exist. Default is False.
     
     Returns:
         Tuple[Dict[int, List[int]], Dict[int, int]]: A tuple containing two dictionaries:
@@ -67,7 +75,7 @@ def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=7
         pathLabels = "./Extension/DAForm/imagesLabel.json"
         pathFrequencies = "./Extension/DAForm/frequencies.json"
 
-    if not (os.path.exists(pathLabels) and os.path.exists(pathFrequencies)):
+    if rebuild or (not (os.path.exists(pathLabels) and os.path.exists(pathFrequencies)) ):
         return evaluateClassFrequencies(num_classes=num_classes, width=width, height=height, 
                                         useOurs=useOurs, pathLabels=pathLabels, pathFrequencies=pathFrequencies) 
 
