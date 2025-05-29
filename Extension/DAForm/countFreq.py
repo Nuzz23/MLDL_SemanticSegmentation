@@ -88,7 +88,7 @@ def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=7
     return imagesLabel, frequencies
 
 
-def normalizeFrequencies(frequencies: dict[int, float], T:float=0.1)->list[float]:
+def normalizeFrequencies(frequencies: dict[int, float], T:float=0.25)->list[float]:
     """
     Normalize the class frequencies
     The formula used is: 
@@ -96,7 +96,7 @@ def normalizeFrequencies(frequencies: dict[int, float], T:float=0.1)->list[float
     
     Args:
         frequencies (dict[int, float]): A dictionary mapping class labels to their frequencies.
-        T (float): Temperature parameter for normalization. Default is 0.1.
+        T (float): Temperature parameter for normalization. Default is 0.25.
         
     Returns:
         normalizedFrequencies (list[float]): A list of normalized frequencies for each class.
