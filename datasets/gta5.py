@@ -39,7 +39,7 @@ class GTA5(Dataset):
         self._images = {i:[os.path.join(imagePath, image), os.path.join(labelPath, image)]
                         for i, image in enumerate(sorted(os.listdir(imagePath))) if image.endswith('.png')}
         
-        if enableProbability is not None: 
+        if enableProbability is not None and enableProbability is not False: 
             self._limit = enableProbability['limit'] if isinstance(enableProbability, dict) and 'limit' in enableProbability else 2500
             self._img_labels, self._freq = loadFrequenciesAndImages(self, num_classes=19, width=1280, height=720, useOurs=False,)
             self._freq = normalizeFrequencies(self._freq, T=enableProbability['T'] if isinstance(enableProbability, dict) and 'T' in enableProbability else 0.25)
