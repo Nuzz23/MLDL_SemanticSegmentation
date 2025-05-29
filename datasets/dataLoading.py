@@ -79,7 +79,7 @@ def transformationGTA5(width:int=1280, height:int=720)->tuple[T.Compose]:
 
 
 def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=None, transform_groundTruth=None,
-              augmentation:BaseTransformation|None=None, convertLabels:bool=True, enableProbability:bool=False)->DataLoader:
+              augmentation:BaseTransformation|None=None, convertLabels:bool=True, enableProbability:bool|dict[str, float]=False)->DataLoader:
     """
     Loads the GTA5 dataset given the path to the directory containing the dataset.
 
@@ -92,7 +92,10 @@ def loadGTA5(batch_size:int, num_workers:int, pin_memory:bool, transform_train=N
         augmentation (BaseTransformation|None, optional): augmentation to apply, if a list of augmentations is given
             they will all be applied. Defaults to None.
         convertLabels (bool, optional): whether to convert the labels or not. Defaults to True.
-        enableProbability (bool, optional): if True, the images will be sampled based on the class frequencies. Defaults to False.
+        enableProbability (bool|dict[str, float], optional): if a dict is given one of the following keys should be given:
+            - 'T': normalization temperature for the sampling probabilities. If not given, defaults to 0.25
+            - 'limit': maximum number of times a figure is allowed to be sampled per epoch. If not given, no limit is applied.
+        if True, we will use the default hyperparameters. Defaults to False.
 
     Returns:
         train_loader (DataLoader): dataLoader for the training set.

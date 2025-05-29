@@ -33,16 +33,17 @@ class GTA5(Dataset):
         self._aug = aug
         self._enableProbability = enableProbability
         
-        if self._enableProbability:
-            self._img_labels, self._freq = loadFrequenciesAndImages(num_classes=19, width=1280, height=720, useOurs=False)
-            self._freq = normalizeFrequencies(self._freq)
-            
-
         imagePath = os.path.join(path, GTA5._images)
         labelPath = os.path.join(path, GTA5._label)
 
         self._images = {i:[os.path.join(imagePath, image), os.path.join(labelPath, image)]
                         for i, image in enumerate(sorted(os.listdir(imagePath))) if image.endswith('.png')}
+        
+        if enableProbability is not None: 
+            self._limit = enableProbability['limit'] if isinstance(enableProbability, dict) and 'limit' in enableProbability else 2500
+            self._img_labels, self._freq = loadFrequenciesAndImages(self, num_classes=19, width=1280, height=720, useOurs=False,)
+            self._freq = normalizeFrequencies(self._freq, T=enableProbability['T'] if isinstance(enableProbability, dict) and 'T' in enableProbability else 0.25)
+            self.__initializeImagesCounter()
         
         
     def __getitem__(self, idx:int)->torch.Tensor:
@@ -104,4 +105,24 @@ class GTA5(Dataset):
         Returns:
             idx (int): index of the image to be sampled.
         """
-        return int(np.random.choice(a=sorted(self._img_labels[int(np.random.choice(list(self._img_labels.keys()), p=freq if freq else self._freq))])))
+        if self.__counter >= self.__len__():
+            self.__initializeImagesCounter()
+        else:
+            self.__counter += 1
+        
+        chosen = int(np.random.choice(a=sorted(self._img_labels[int(np.random.choice(list(self._img_labels.keys()), p=freq if freq else self._freq))])))
+        
+        while self.__counterDict[chosen] > self._limit:
+            chosen = int(np.random.choice(a=sorted(self._img_labels[int(np.random.choice(list(self._img_labels.keys()), p=freq if freq else self._freq))])))
+        self.__counterDict[chosen] += 1
+        
+        return chosen
+
+    def __initializeImagesCounter(self)->None:
+        """
+        Initializes the counter for the images to be sampled based on the class frequencies
+        using a dictionary where the key is the class label and the value is the number of times
+        the image has been sampled.
+        """
+        self.__counter = 0
+        self.__counterDict = {k:0 for k in self._img_labels.keys()}
