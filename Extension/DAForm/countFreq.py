@@ -50,13 +50,16 @@ def loadFrequenciesAndImages(num_classes: int=19) -> tuple:
             - imagesLabel: mapping of class labels to the list of image indices
             - frequencies: mapping of class labels to their frequency counts
     """
-    if not (("imagesLabel.json" in os.listdir()) and ("frequencies.json" in os.listdir())):
-        return evaluateClassFrequencies(num_classes=num_classes)
-    
-    with open("imagesLabel.json", "r") as f:
-        imagesLabel = json.load(f)
+    pathLabels = "./Extension/DAForm/imagesLabel.json"
+    pathFrequencies = "./Extension/DAForm/frequencies.json"
 
-    with open("frequencies.json", "r") as f:
-        frequencies = json.load(f)
+    if not (os.path.exists(pathLabels) and os.path.exists(pathFrequencies)):
+        return evaluateClassFrequencies(num_classes=num_classes)
+
+    with open(pathLabels, "r") as f:
+        imagesLabel = dict(map(lambda x: (int(x[0]), set(x[1])), json.load(f).items()))
+
+    with open(pathFrequencies, "r") as f:
+        frequencies = dict(map(lambda x: (int(x[0]), x[1]), json.load(f).items()))
 
     return imagesLabel, frequencies
