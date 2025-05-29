@@ -33,10 +33,12 @@ def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720
     for batch_idx in range(GTA6.__len__()):    
         mask = GTA6.__getitem__(batch_idx)[1]
         
-        for label in set(map(lambda x:int(x), torch.unique(mask))).difference({255}):    
-                frequencies[label] += 1
-                imagesLabel[label].add(batch_idx)
-                
+        for row in mask[0]:
+            for label in row:
+                if 0<= label < num_classes: 
+                    frequencies[label] += 1
+                    imagesLabel[label].add(batch_idx)
+                    
     if not useOurs:
         frequencies = {k:v/(GTA6.__len__()*width*height) for k,v in frequencies.items()}
         
