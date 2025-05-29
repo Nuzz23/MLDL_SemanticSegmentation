@@ -1,20 +1,18 @@
-import os, torch
+import os, torch, numpy as np
 from torch.utils.data import Dataset
 from torchvision.io import decode_image
 from torchvision.transforms import ToPILImage
 from datasets.labelConverter import convertLabels
 from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
-import pandas as pd
-import json
-import numpy as np
-from Extension.DAForm.countFreq import loadFrequenciesAndImages
+from Extension.DAForm.countFreq import loadFrequenciesAndImages, normalizeFrequencies
 
 class GTA5Resampling(Dataset):
     _label = 'labels'
     _images = 'images'
     
     def __init__(self, path:str, convertLabels:bool=True, transform=None, transformTarget=None, 
-                    aug:BaseTransformation|list[BaseTransformation]=None)-> None:
+                    aug:BaseTransformation|list[BaseTransformation]=None, 
+                    enableProbability:bool=False)-> None:
         """
         Loads the GTA5 dataset given the path to the directory containing the dataset.
         
@@ -25,6 +23,7 @@ class GTA5Resampling(Dataset):
             transformTarget (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
             aug (BaseTransformation|list[BaseTransformation], optional): augmentation to apply, if a list of augmentations is given
                 they will all be applied. Defaults to None.
+            enableProbability (bool, optional): if True, the images will be sampled based on the class frequencies. Defaults to False.
         """
         
         super(GTA5Resampling, self).__init__()
@@ -32,38 +31,20 @@ class GTA5Resampling(Dataset):
         self._transform = transform
         self._transformTarget = transformTarget
         self._aug = aug
+        self._enableProbability = enableProbability
         
-        self.img_labes, freq = loadFrequenciesAndImages()
-        self.freq = torch.tensor(list(map(sorted(freq.items(), lambda x:x[0]))), dtype=torch.float32)
-        self.img_labes2 = {k:list(v) for k, v in self.img_labes.items()}    
-        
+        if self._enableProbability:
+            self._img_labels, self._freq = loadFrequenciesAndImages(num_classes=19, width=1280, height=720, useOurs=False)
+            self._freq = normalizeFrequencies(self._freq)
+            
+
         imagePath = os.path.join(path, GTA5Resampling._images)
         labelPath = os.path.join(path, GTA5Resampling._label)
-        
-        
-        
         
         self._images = {i:[os.path.join(imagePath, image), os.path.join(labelPath, image)]    
                         for i, image in enumerate(sorted(os.listdir(imagePath))) if image.endswith('.png')}
         
-
-    def sample_images_with_class(self):
-        """
-        get the probability distribution of the classes and sample images based on the class frequencies.
-    
-        Args:"""
-        sampled = False
-        while not sampled: 
-            c = np.random.choice(list(range(19)), p=self.freq.numpy())
-            if len(self.img_labes[c]) > 0:
-                img_list = np.random.choice(self.img_labes[c])
-                #get a random image from Img_list and i remove it from the list
-                img = img_list[np.random.randint(0, len(img_list))]
-                self._images.remove(img)
-                return img
-       
         
-
     def __getitem__(self, idx:int)->torch.Tensor:
         """
         Loads the image and its corresponding label given the index.
@@ -76,10 +57,9 @@ class GTA5Resampling(Dataset):
                 - image (torch.Tensor): image as torch tensor.
                 - mask label (torch.Tensor): mask label as torch tensor.
         """
-        
-        
         toPil = ToPILImage()
-        idx = self.sample_images_with_class()
+        if self._enableProbability:
+            idx = self.__get_image_indexProb()
         
         image = decode_image(self._images[idx][0]).to(dtype=torch.uint8)
         mask =  decode_image(self._images[idx][1]).to(dtype=torch.uint8)
@@ -112,29 +92,16 @@ class GTA5Resampling(Dataset):
         """
         return len(self._images)
     
-    def getImageLabels(self):
+    
+    def __get_image_indexProb(self, freq:list[float]=None)->int:
         """
-        Returns the image labels.
-        
-        Returns:
-            dict: dictionary containing the image labels.
-        """
-        return dict(self.img_labes.items())
-
-    def startNewEpoch(self):
-        """
-        Sets the image labels.
+        Returns the index of the image to be sampled based on the class frequencies
+        using a multinomial distribution.
         
         Args:
-            img_labels (dict): dictionary containing the image labels.
+            freq (list[float], optional): frequencies of the classes. If None, uses the class frequencies.
+        
+        Returns:
+            idx (int): index of the image to be sampled.
         """
-        self.img_labes = self.img_labes2.copy()
-    
-def main():
-    # Example usage
-    gta5_dataset = GTA5Resampling(path='path', convertLabels=True)
-    
-    
-
-    
-    
+        return int(np.random.choice(a=sorted(self._img_labels[int(np.random.choice(list(self._img_labels.keys()), p=freq if freq else self._freq))])))

@@ -1,8 +1,9 @@
+import torch
 import json
 from datasets.dataLoading import transformationGTA5
 from datasets.gta5 import GTA5
-import torch
 import os
+import numpy as np
 
 def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720, useOurs:bool=False, pathLabels:str="./Extension/DAForm/imagesLabel.json", 
                                 pathFrequencies:str="./Extension/DAForm/frequencies.json")-> tuple[dict[int, set[int]], dict[int, int]]:
@@ -33,12 +34,11 @@ def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720
     for batch_idx in range(GTA6.__len__()):    
         mask = GTA6.__getitem__(batch_idx)[1]
         
-        for row in mask[0]:
-            for label in row:
-                if 0<= label < num_classes: 
-                    frequencies[label] += 1
-                    imagesLabel[label].add(batch_idx)
-                    
+        for label in map(int, torch.unique(mask[0])):
+            if 0 <= label < num_classes:
+                imagesLabel[label].add(batch_idx)
+                frequencies[label] += mask[0][mask[0]==label].numel()
+
     if not useOurs:
         frequencies = {k:v/(GTA6.__len__()*width*height) for k,v in frequencies.items()}
         
@@ -78,3 +78,20 @@ def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=7
         frequencies = dict(map(lambda x: (int(x[0]), x[1]), json.load(f).items()))
 
     return imagesLabel, frequencies
+
+
+def normalizeFrequencies(frequencies: dict[int, float], T:float=0.1)->list[float]:
+    """
+    Normalize the class frequencies
+    The formula used is: 
+    P(x) = exp((1 - f(x)) / T) / sum(exp((1 - f(x)) / T))
+    
+    Args:
+        frequencies (dict[int, float]): A dictionary mapping class labels to their frequencies.
+        T (float): Temperature parameter for normalization. Default is 0.1.
+        
+    Returns:
+        normalizedFrequencies (list[float]): A list of normalized frequencies for each class.
+    """
+    bVal = np.exp((1-np.array(list(map(lambda x:x[1], sorted(frequencies.items(), lambda x:x[0]))))/T))
+    return bVal/ bVal.sum()
