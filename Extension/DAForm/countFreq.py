@@ -1,11 +1,7 @@
-import torch
-import json
-from datasets.dataLoading import transformationGTA5
-from datasets.gta5 import GTA5
-import os
+import torch, os, json
 import numpy as np
 
-def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720, useOurs:bool=False, pathLabels:str="./Extension/DAForm/imagesLabel.json", 
+def evaluateClassFrequencies(gta, num_classes: int=19, width:int=1280, height:int=720, useOurs:bool=False, pathLabels:str="./Extension/DAForm/imagesLabel.json", 
                                 pathFrequencies:str="./Extension/DAForm/frequencies.json")-> tuple[dict[int, set[int]], dict[int, int]]:
     """
     Evaluates the class frequencies saving the results in two json files:
@@ -25,23 +21,30 @@ def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720
         - imagesLabel: mapping of class labels to the list of image indices
         - frequencies: mapping of class labels to their frequency counts
     """
-
     imagesLabel, frequencies = {k:set() for k in range(num_classes)}, {k:0 for k in range(num_classes)}
-    train, eval = transformationGTA5()
 
-    GTA6 = GTA5('./data/GTA5/', transform=train, transformTarget=eval)
+    if useOurs:
+        for batch_idx in range(gta.__len__()):    
+            mask = gta.__getitem__(batch_idx)[1]
 
-    for batch_idx in range(GTA6.__len__()):    
-        mask = GTA6.__getitem__(batch_idx)[1]
-        
-        for label in map(int, torch.unique(mask[0])):
-            if 0 <= label < num_classes:
-                imagesLabel[label].add(batch_idx)
-                frequencies[label] += mask[0][mask[0]==label].numel()
+            for label in map(int, torch.unique(mask[0])):
+                if 0 <= label < num_classes:
+                    imagesLabel[label].add(batch_idx)
+                    frequencies[label] += 1
 
-    if not useOurs:
-        frequencies = {k:v/(GTA6.__len__()*width*height) for k,v in frequencies.items()}
-        
+        frequencies = {k:v/(sum(list(frequencies.values()))) for k,v in frequencies.items()}    
+    else:
+        for batch_idx in range(gta.__len__()):    
+            mask = gta.__getitem__(batch_idx)[1]
+            
+            for label in map(int, torch.unique(mask[0])):
+                if 0 <= label < num_classes:
+                    imagesLabel[label].add(batch_idx)
+                    frequencies[label] += mask[0][mask[0]==label].numel()
+
+        frequencies = {k:v/(gta.__len__()*width*height) for k,v in frequencies.items()}
+
+
     with open(pathLabels, "w") as f:
         json.dump({k: list(v) for k, v in imagesLabel.items()}, f, indent=4)
 
@@ -101,5 +104,5 @@ def normalizeFrequencies(frequencies: dict[int, float], T:float=0.25)->list[floa
     Returns:
         normalizedFrequencies (list[float]): A list of normalized frequencies for each class.
     """
-    bVal = np.exp((1-np.array(list(map(lambda x:x[1], sorted(frequencies.items(), lambda x:x[0]))))/T))
+    bVal = np.exp((1-np.array(list(map(lambda x:x[1], sorted(frequencies.items(), key=lambda x:x[0]))))/T))
     return bVal/ bVal.sum()
