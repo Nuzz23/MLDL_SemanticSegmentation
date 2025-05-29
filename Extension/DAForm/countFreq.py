@@ -54,12 +54,13 @@ def evaluateClassFrequencies(gta, num_classes: int=19, width:int=1280, height:in
     return imagesLabel, frequencies
 
 
-def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=720, useOurs:bool=False, 
+def loadFrequenciesAndImages(gta5, num_classes: int=19, width:int = 1280, height:int=720, useOurs:bool=False, 
                                 rebuild:bool=False) -> tuple[dict[int, set[int]], dict[int, int]]:
     """
     Load the class frequencies from the saved JSON files.
     
     Args:
+        gta5: The GTA5 dataset object.
         num_classes (int): Number of classes in the dataset. Default is 19.
         width (int): Width of the images. Default is 1280.
         height (int): Height of the images. Default is 720.
@@ -79,7 +80,7 @@ def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=7
         pathFrequencies = "./Extension/DAForm/frequencies.json"
 
     if rebuild or (not (os.path.exists(pathLabels) and os.path.exists(pathFrequencies)) ):
-        return evaluateClassFrequencies(num_classes=num_classes, width=width, height=height, 
+        return evaluateClassFrequencies(gta5, num_classes=num_classes, width=width, height=height, 
                                         useOurs=useOurs, pathLabels=pathLabels, pathFrequencies=pathFrequencies) 
 
     with open(pathLabels, "r") as f:
