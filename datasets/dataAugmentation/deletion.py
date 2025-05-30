@@ -26,21 +26,32 @@ class RandomErasing(BaseTransformation):
         self.__ratio = ratio
         
         
-    def transform(self, image: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+    def transform(self, image: torch.Tensor, mask: torch.Tensor, deleteInMask:bool=True) -> torch.Tensor:
         """
         Applies random erasing to the image if the probability is met.
         
         Args:
             image (torch.Tensor): image to be transformed.
             mask (torch.Tensor): mask to be transformed.
+            deleteInMask (bool, optional): if True, the erased area in the mask will be set to 0. Defaults to True.
             
         Returns:
             transformedImage (torch.Tensor): transformed image.
             mask (torch.Tensor): transformed mask.
         """
         if torch.rand(1).item() < super().getProbability():
-            return TorchRandomErasing(scale=self.__scale, ratio=self.__ratio, p=1)(image), mask
-        
+            if deleteInMask:
+                eraser = TorchRandomErasing(scale=self.__scale, ratio=self.__ratio, p=1, inplace=False)
+                params = eraser.get_params(image, scale=self.__scale, ratio=self.__ratio, value=0)
+                x, y, h, w, v = params
+                erased_image = image.clone()
+                erased_image[..., y:y + h, x:x + w] = v
+                erased_mask = mask.clone()
+                erased_mask[..., y:y + h, x:x + w] = 0
+                return erased_image, erased_mask
+            else:
+                return TorchRandomErasing(scale=self.__scale, ratio=self.__ratio, p=1)(image), mask
+
         return image, mask
     
     
