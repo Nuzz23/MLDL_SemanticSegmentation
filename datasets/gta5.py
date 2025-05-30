@@ -125,4 +125,4 @@ class GTA5(Dataset):
         the image has been sampled.
         """
         self.__counter = 0
-        self.__counterDict = {k:0 for k in self._img_labels.keys()}
+        self.__counterDict = {k:0 for k in self._images.keys()}
