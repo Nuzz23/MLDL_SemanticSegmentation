@@ -1,10 +1,7 @@
-import json
-from datasets.dataLoading import transformationGTA5
-from datasets.gta5 import GTA5
-import torch
-import os
+import torch, os, json
+import numpy as np
 
-def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720, useOurs:bool=False, pathLabels:str="./Extension/DAForm/imagesLabel.json", 
+def evaluateClassFrequencies(gta, num_classes: int=19, width:int=1280, height:int=720, useOurs:bool=False, pathLabels:str="./Extension/DAForm/imagesLabel.json", 
                                 pathFrequencies:str="./Extension/DAForm/frequencies.json")-> tuple[dict[int, set[int]], dict[int, int]]:
     """
     Evaluates the class frequencies saving the results in two json files:
@@ -24,22 +21,30 @@ def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720
         - imagesLabel: mapping of class labels to the list of image indices
         - frequencies: mapping of class labels to their frequency counts
     """
-
     imagesLabel, frequencies = {k:set() for k in range(num_classes)}, {k:0 for k in range(num_classes)}
-    train, eval = transformationGTA5()
 
-    GTA6 = GTA5('./data/GTA5/', transform=train, transformTarget=eval)
+    if useOurs:
+        for batch_idx in range(gta.__len__()):    
+            mask = gta.__getitem__(batch_idx)[1]
 
-    for batch_idx in range(GTA6.__len__()):    
-        mask = GTA6.__getitem__(batch_idx)[1]
-        
-        for label in set(map(lambda x:int(x), torch.unique(mask))).difference({255}):    
-                frequencies[label] += 1
-                imagesLabel[label].add(batch_idx)
-                
-    if not useOurs:
-        frequencies = {k:v/(GTA6.__len__()*width*height) for k,v in frequencies.items()}
-        
+            for label in map(int, torch.unique(mask[0])):
+                if 0 <= label < num_classes:
+                    imagesLabel[label].add(batch_idx)
+                    frequencies[label] += 1
+
+        frequencies = {k:v/(sum(list(frequencies.values()))) for k,v in frequencies.items()}    
+    else:
+        for batch_idx in range(gta.__len__()):    
+            mask = gta.__getitem__(batch_idx)[1]
+            
+            for label in map(int, torch.unique(mask[0])):
+                if 0 <= label < num_classes:
+                    imagesLabel[label].add(batch_idx)
+                    frequencies[label] += mask[0][mask[0]==label].numel()
+
+        frequencies = {k:v/(gta.__len__()*width*height) for k,v in frequencies.items()}
+
+
     with open(pathLabels, "w") as f:
         json.dump({k: list(v) for k, v in imagesLabel.items()}, f, indent=4)
 
@@ -49,9 +54,18 @@ def evaluateClassFrequencies(num_classes: int=19, width:int=1280, height:int=720
     return imagesLabel, frequencies
 
 
-def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=720, useOurs:bool=False) -> tuple:
+def loadFrequenciesAndImages(gta5, num_classes: int=19, width:int = 1280, height:int=720, useOurs:bool=False, 
+                                rebuild:bool=False) -> tuple[dict[int, set[int]], dict[int, int]]:
     """
     Load the class frequencies from the saved JSON files.
+    
+    Args:
+        gta5: The GTA5 dataset object.
+        num_classes (int): Number of classes in the dataset. Default is 19.
+        width (int): Width of the images. Default is 1280.
+        height (int): Height of the images. Default is 720.
+        useOurs (bool): If True, uses our function to evaluate everything else uses the paper method of calculating the frequencies. Default is False.
+        rebuild (bool): If True, rebuilds the class frequencies even if the JSON files already exist. Default is False.
     
     Returns:
         Tuple[Dict[int, List[int]], Dict[int, int]]: A tuple containing two dictionaries:
@@ -65,8 +79,8 @@ def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=7
         pathLabels = "./Extension/DAForm/imagesLabel.json"
         pathFrequencies = "./Extension/DAForm/frequencies.json"
 
-    if not (os.path.exists(pathLabels) and os.path.exists(pathFrequencies)):
-        return evaluateClassFrequencies(num_classes=num_classes, width=width, height=height, 
+    if rebuild or (not (os.path.exists(pathLabels) and os.path.exists(pathFrequencies)) ):
+        return evaluateClassFrequencies(gta5, num_classes=num_classes, width=width, height=height, 
                                         useOurs=useOurs, pathLabels=pathLabels, pathFrequencies=pathFrequencies) 
 
     with open(pathLabels, "r") as f:
@@ -76,3 +90,20 @@ def loadFrequenciesAndImages(num_classes: int=19, width:int = 1280, height:int=7
         frequencies = dict(map(lambda x: (int(x[0]), x[1]), json.load(f).items()))
 
     return imagesLabel, frequencies
+
+
+def normalizeFrequencies(frequencies: dict[int, float], T:float=0.25)->list[float]:
+    """
+    Normalize the class frequencies
+    The formula used is: 
+    P(x) = exp((1 - f(x)) / T) / sum(exp((1 - f(x)) / T))
+    
+    Args:
+        frequencies (dict[int, float]): A dictionary mapping class labels to their frequencies.
+        T (float): Temperature parameter for normalization. Default is 0.25.
+        
+    Returns:
+        normalizedFrequencies (list[float]): A list of normalized frequencies for each class.
+    """
+    bVal = np.exp((1-np.array(list(map(lambda x:x[1], sorted(frequencies.items(), key=lambda x:x[0]))))/T))
+    return bVal/ bVal.sum()
