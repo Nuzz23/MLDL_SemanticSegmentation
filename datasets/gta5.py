@@ -107,8 +107,7 @@ class GTA5(Dataset):
         """
         if self.__counter >= self.__len__():
             self.__initializeImagesCounter()
-        else:
-            self.__counter += 1
+        self.__counter += 1
         
         chosen = int(np.random.choice(a=sorted(self._img_labels[int(np.random.choice(list(self._img_labels.keys()), p=freq if freq else self._freq))])))
         
