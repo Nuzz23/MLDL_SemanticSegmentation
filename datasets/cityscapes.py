@@ -9,7 +9,7 @@ class CityScapes(Dataset):
     _keyPathFinal = 'images'
     _valuePathFinal = 'gtFine'
 
-    def __init__(self, path_dir: str, transform:T=None, targetTransform:T=None) -> None:
+    def __init__(self, path_dir: str, transform:T=None, targetTransform:T=None, deterministBehavior:bool=False) -> None:
         """
         Loads the CityScapes dataset given the path to the directory containing the dataset.
 
@@ -17,10 +17,12 @@ class CityScapes(Dataset):
             path_dir (str): path to the directory containing the dataset.
             transform (torchvision.transforms, optional): transformations to apply to the images. Defaults to None.
             targetTransform (torchvision.transforms, optional): transformations to apply to the masks. Defaults to None.
+            deterministBehavior (bool, optional): if True, the index of the images will be returned so that the dataset can be used in a deterministic way. Defaults to False.
         """
         super(CityScapes, self).__init__()
         self._transform = transform
         self._targetTransform= targetTransform
+        self._deterministBehavior = deterministBehavior
 
         prefix =  path_dir.split("/")[-1].strip()
         path_dir = '/'.join(path_dir.split("/")[:-2])
@@ -58,7 +60,7 @@ class CityScapes(Dataset):
         if self._targetTransform:
             mask = self._targetTransform(toPil(mask))
 
-        return image, mask
+        return (image, mask) if not self._deterministBehavior else (image, mask, idx)
 
 
     def __len__(self)->int:
