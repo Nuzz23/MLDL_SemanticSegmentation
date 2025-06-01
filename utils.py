@@ -128,7 +128,7 @@ def dice_loss_from_logits(logits, targets, num_classes:int=19, smooth:float=1e-6
 
 
 # %% Function to compute the loss for BiSeNet
-def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion) -> torch.Tensor:
+def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float=1) -> torch.Tensor:
     """
     Compute the loss for BiSeNet model.
     
@@ -136,6 +136,7 @@ def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion) -> torch.Tens
         pred (torch.Tensor): Model predictions.
         mask (torch.Tensor): Ground truth masks.
         criterion: Loss function to compute the loss.
+        weight (float, optional): Weight for the loss. Defaults to 1.
 
     Returns:
         loss (torch.Tensor): Computed loss.
@@ -143,7 +144,16 @@ def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion) -> torch.Tens
     loss1 = criterion(pred[0], mask.long())
     loss2 = criterion(pred[1], mask.long())
     loss3 = criterion(pred[2], mask.long())
-    return loss1 + loss2 + loss3
+    return loss1 + weight*(loss2 + loss3)
+
+
+def BiSeNetV2Loss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float) -> torch.Tensor:
+    loss_main = criterion(pred[0], mask.long())
+    loss_aux2 = criterion(pred[1], mask.long())
+    loss_aux3 = criterion(pred[2], mask.long())
+    loss_aux4 = criterion(pred[3], mask.long())
+    loss_aux5_4 = criterion(pred[4], mask.long())
+    return loss_main + weight * (loss_aux2 + loss_aux3 + loss_aux4 + loss_aux5_4)
 
 
 # %% Function to visualize the segmentation mask
