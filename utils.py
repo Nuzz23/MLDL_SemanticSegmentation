@@ -94,7 +94,7 @@ def perClassIoU(true,pred, n:int=19):
     # print(per_class_iou(fast_hist(true, pred, n)).shape)
     return per_class_iou(fast_hist(true, pred, n)), [i in true.unique() for i in range(n)]
 
-def dice_loss_from_logits(logits, targets, num_classes:int, smooth:float=1e-6)->torch.Tensor:
+def dice_loss_from_logits(logits, targets, num_classes:int=19, smooth:float=1e-6)->torch.Tensor:
     """
     logits: [B, C, H, W] - raw model outputs
     targets: [B, H, W] - class indices (0 to C-1)
