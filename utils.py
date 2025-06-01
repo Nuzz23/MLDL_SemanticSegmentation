@@ -147,7 +147,7 @@ def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float=
     return loss1 + weight*(loss2 + loss3)
 
 
-def BiSeNetV2Loss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float) -> torch.Tensor:
+def BiSeNetV2Loss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float=0.4) -> torch.Tensor:
     loss_main = criterion(pred[0], mask.long())
     loss_aux2 = criterion(pred[1], mask.long())
     loss_aux3 = criterion(pred[2], mask.long())
