@@ -148,12 +148,50 @@ def BiSeNetLoss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float=
 
 
 def BiSeNetV2Loss(pred: torch.Tensor, mask: torch.Tensor, criterion, weight:float=0.4) -> torch.Tensor:
+    """Compute the loss for BiSeNetV2 model.
+    
+    Args:
+        pred (torch.Tensor): Model predictions.
+        mask (torch.Tensor): Ground truth masks.
+        criterion: Loss function to compute the loss.
+        weight (float, optional): Weight for the auxiliary losses. Defaults to 0.4.
+    
+    Returns:
+        loss (torch.Tensor): Computed loss."""
     loss_main = criterion(pred[0], mask.long())
     loss_aux2 = criterion(pred[1], mask.long())
     loss_aux3 = criterion(pred[2], mask.long())
     loss_aux4 = criterion(pred[3], mask.long())
     loss_aux5_4 = criterion(pred[4], mask.long())
     return loss_main + weight * (loss_aux2 + loss_aux3 + loss_aux4 + loss_aux5_4)
+
+
+def singleCharbonnier(x, nu:int =2):
+    """    Compute the Charbonnier loss for a single prediction.
+    Args:
+        x (torch.Tensor): Model predictions of shape [B, C, H, W].
+        nu (int, optional): Exponent for the Charbonnier loss. Defaults to 2.
+    Returns:
+        charbonnier loss (torch.Tensor): Computed Charbonnier loss."""
+    P = F.softmax(x, dim=1)        # [B, 19, H, W]
+    logP = F.log_softmax(x, dim=1) # [B, 19, H, W]
+    ent = -1.0 * (P * logP).sum(dim=1)  # [B, 1, H, W]
+    ent = ent / 2.9444         # change when classes is not 19
+    return  ((ent ** 2.0 + 1e-8) ** nu).mean()
+
+def charbonnierEntropy(preds, nu:int = 2):
+    """Compute the Charbonnier loss for multiple predictions.
+    
+    Args:
+        preds (list[torch.Tensor]): List of model predictions, each of shape [B, C, H, W].
+        nu (int, optional): Exponent for the Charbonnier loss. Defaults to 2.
+    
+    Returns:
+        charbonnier loss (torch.Tensor): Computed Charbonnier loss."""
+    x1 = singleCharbonnier(preds[0], nu)
+    x2 = singleCharbonnier(preds[1], nu)
+    x3 = singleCharbonnier(preds[2], nu)
+    return x1 + x2 + x3
 
 
 # %% Function to visualize the segmentation mask
