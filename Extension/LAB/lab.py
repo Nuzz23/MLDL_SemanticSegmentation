@@ -1,7 +1,5 @@
-import torch
-import numpy as np
+import torch, numpy as np
 from skimage import color
-
 
 
 class LAB():
