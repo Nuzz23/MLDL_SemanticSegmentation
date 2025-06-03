@@ -188,10 +188,10 @@ def charbonnierEntropy(preds, nu:int = 2):
     
     Returns:
         charbonnier loss (torch.Tensor): Computed Charbonnier loss."""
-    x = torch.Tensor(0).to(preds[0].device)  
-    for i in range(len(preds)):
-        x += singleCharbonnier(preds[i], nu)
-    return x
+    x1 = singleCharbonnier(preds[0], nu)
+    x2 = singleCharbonnier(preds[1], nu)
+    x3 = singleCharbonnier(preds[2], nu)
+    return x1 + x2 + x3
 
 
 # %% Function to visualize the segmentation mask
