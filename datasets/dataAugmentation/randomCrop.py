@@ -32,7 +32,7 @@ class RandomCrop(BaseTransformation):
         if torch.rand(1).item() > self.getProbability():
             return image, mask
         
-        resizeImage, resizeTarget = transforms.Resize(image.shape[-2:]), transforms.Resize(mask.shape[-2:], interpolation=torchvision.transforms.InterpolationMode.NEAREST)
+        resizeImage, resizeTarget = transforms.Resize(image.shape[-2:]), transforms.Resize(mask.shape[-2:], interpolation=transforms.InterpolationMode.NEAREST)
         transform = transforms.RandomCrop(self.__size, pad_if_needed=self.__pad_if_needed, fill=255, padding_mode='constant')
         return resizeImage(transform(image)), resizeTarget(transform(mask))
 
