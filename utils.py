@@ -94,37 +94,34 @@ def perClassIoU(true,pred, n:int=19):
     # print(per_class_iou(fast_hist(true, pred, n)).shape)
     return per_class_iou(fast_hist(true, pred, n)), [i in true.unique() for i in range(n)]
 
-def dice_loss_from_logits(logits, targets, num_classes:int=19, smooth:float=1e-6)->torch.Tensor:
+
+def dice_loss(pred: torch.Tensor, target: torch.Tensor, num_classes:int=19, ignore_index:int=255, smooth:float=1e-6):
     """
-    logits: [B, C, H, W] - raw model outputs
-    targets: [B, H, W] - class indices (0 to C-1)
-    
-    Computes the Dice loss between the predicted logits and the target class indices.
-    The logits are first converted to probabilities using softmax, and then the Dice loss is computed.
-    The loss is averaged over the batch and classes.
+    Compute the Dice Loss for semantic segmentation.
     
     Args:
-        logits (torch.Tensor): Raw model outputs of shape [B, C, H, W]
-        targets (torch.Tensor): Target class indices of shape [B, H, W]
-        num_classes (int): Number of classes
-        smooth (float, optional): Smoothing factor to avoid division by zero. Defaults to 1e-6.
+        pred (torch.Tensor): Model predictions of shape [B, C, H, W].
+        target (torch.Tensor): Ground truth masks of shape [B, H, W].
+        num_classes (int, optional): Number of classes in the segmentation task. Defaults to 19.
+        ignore_index (int, optional): Value to ignore in the target mask. Defaults to 255.
         
     Returns:
-        diceLoss (torch.Tensor): Dice loss value    
+        loss (torch.Tensor): Computed Dice Loss.
     """
-    # Apply softmax to get probabilities
-    probs = torch.softmax(logits, dim=1)  # [B, C, H, W]
+    # Crea la rappresentazione one-hot della maschera target
+    target_one_hot = torch.nn.functional.one_hot(target, num_classes=num_classes).permute(0, 3, 1, 2).float()
 
-    # One-hot encode the targets
-    targets_onehot = F.one_hot(targets, num_classes)  # [B, H, W, C]
-    targets_onehot = targets_onehot.permute(0, 3, 1, 2)  # [B, C, H, W]
+    # Ignora i pixel con valore 255
+    mask = target != ignore_index
+    pred = pred * mask
+    target_one_hot = target_one_hot * mask.unsqueeze(1)
 
-    # Compute per-class Dice
-    intersection = (probs * targets_onehot).sum(dim=(2, 3))  # [B, C]
-    union = probs.sum(dim=(2, 3)) + targets_onehot.sum(dim=(2, 3))  # [B, C]
-
-    dice = (2. * intersection + smooth) / (union + smooth)  # [B, C]
-    return 1 - dice.mean()  # average over batch and classes
+    # Calcolo della Dice Loss
+    intersection = (pred * target_one_hot).sum(dim=(2, 3))
+    union = pred.sum(dim=(2, 3)) + target_one_hot.sum(dim=(2, 3))
+    
+    dice = (2. * intersection + smooth) / (union + smooth)
+    return 1 - dice.mean()
 
 
 # %% Function to compute the loss for BiSeNet
