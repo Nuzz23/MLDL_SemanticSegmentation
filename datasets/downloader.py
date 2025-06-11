@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, os
 
 class Downloader():
     CITYSCAPES_LINK = [
@@ -23,6 +23,10 @@ class Downloader():
         '1oxDuTMHCJjhpLh11Oq4G9WUyhU7hVkJ6'
     ]
     
+    DEEPLAB_WEIGHTS_LINK = [   
+        '19bnz8U9YILyLjOTFuzeGhHRrYheW4bml',
+        '1YG7ynbwSmyVyMOJ17ePfaGYDj6Xp6dq2'
+    ]
     
     def downloadCityScapes(self)->bool:
         """
@@ -56,7 +60,6 @@ class Downloader():
         return True
     
     
-    
     def downloadGTA5(self)->bool:
         """
         Downloads the GTA5 dataset from the stored link.
@@ -86,4 +89,36 @@ class Downloader():
         # remove the zip used for the download
         subprocess.run(["rm", "GTA5.zip"], check=True)
 
+        return True
+    
+    
+    def downloadWeightsDeepLabV2(self)->bool:
+        """
+        Downloads the DeepLabV2 weights from the stored link.
+        
+        Returns:
+            status (bool): True if the download was successful, False otherwise.
+        """
+        flag = False
+        if 'weights' not in subprocess.check_output("ls", shell=True).decode('utf-8').split():
+            subprocess.run(["mkdir", "weights"], check=True)
+
+        if 'DeepLabV2' not in os.listdir('weights'):
+            os.mkdir('weights/DeepLabV2')
+
+        for link in self.DEEPLAB_WEIGHTS_LINK:
+            try:
+                subprocess.run(["gdown", "--quiet", link, "-O", "weights/DeepLabV2/weights_0_0.pth"], check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Error downloading DeepLabV2 weights: {e} with id {link}")
+                continue
+
+            if 'weights/DeepLabV2/weights_0_0.pth' in subprocess.check_output("ls", shell=True).decode('utf-8').split():
+                flag = True
+                break
+            
+        if not flag:
+            print("DeepLabV2 weights download failed.")
+            return False
+        
         return True
