@@ -196,6 +196,36 @@ def charbonnierEntropy(preds, nu:int = 2):
     return x1 + x2 + x3
 
 
+def FastSCNNLoss(preds, label, criterion, weight:float=0.4):
+    """Compute the loss for FastSCNN model.
+    Args:
+        preds (list[torch.Tensor]): List of model predictions, each of shape [B, C, H, W].
+        label (torch.Tensor): Ground truth labels of shape [B, H, W].
+        criterion: Loss function to compute the loss.
+        weight (float, optional): Weight for the auxiliary loss. Defaults to 0.4.
+    Returns:
+        loss (torch.Tensor): Computed loss.
+    """
+    main_loss = criterion(preds[0], label)
+    aux_loss = criterion(preds[1], label)
+    return main_loss + weight * aux_loss
+
+def STDCLoss(preds, label, criterion, weight:float=0.4):
+    """Compute the loss for STDCL model.
+    
+    Args:
+        preds (list[torch.Tensor]): List of model predictions, each of shape [B, C, H, W].
+        label (torch.Tensor): Ground truth labels of shape [B, H, W].
+        criterion: Loss function to compute the loss.
+        weight (float, optional): Weight for the auxiliary losses. Defaults to 0.4.
+    Returns:
+        loss (torch.Tensor): Computed loss.
+    """
+    loss_main = criterion(preds[0], label)
+    loss_aux2 = criterion(preds[1], label)
+    loss_aux3 = criterion(preds[2], label)
+    return loss_main + weight * (loss_aux2 + loss_aux3) + dice_loss_from_logits(preds[0], label)
+
 # %% Function to visualize the segmentation mask
 
 
