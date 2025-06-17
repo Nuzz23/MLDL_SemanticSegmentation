@@ -12,7 +12,10 @@ class Downloader():
         '1_0N0415q9cwV9uDKPXbXvJKrretduhph',
         '1TtOYU9OkLoy8Hs3FItMFnhYFtWJNT2wM',
         '1Q0wB-kIQBF6wivedP-Mac3CswKmC4b5-',
-        '1u3kA7gZ-GtNbPSRuFtfoUDeQxyTZvLpt'
+        '1u3kA7gZ-GtNbPSRuFtfoUDeQxyTZvLpt',
+        '1cQCWGnH704eGbLFHcrRK40JMGIprN4M_',
+        '1AYq6MuOeF30eTqsO7Kjnnv5rtyALUcjw',
+        '1veuUcCv0sZ6_NFZp_fnmlOtueGy-rtZv'
     ]
     
     GTAV_LINK = [
@@ -26,7 +29,10 @@ class Downloader():
         '1oxDuTMHCJjhpLh11Oq4G9WUyhU7hVkJ6',
         '1gI6P62DWuBvIYCFznO8vFlXjmLJaO47g',
         '1PxzzSi4W7fPK7dpxhjWKaqOepdK-p5jC',
-        '1xQt8EfoAbflIzMcanJHLlaQB5YgTCUg6'
+        '1xQt8EfoAbflIzMcanJHLlaQB5YgTCUg6',
+        '1sPHqHV7zwg0ssS0_14WaUvzDh3_gTLF1',
+        '1M63fJe3asbZtTfYW2LffTa3jr4_mo1MV',
+        '1M63fJe3asbZtTfYW2LffTa3jr4_mo1MV/'
     ]
     
     DEEPLAB_WEIGHTS_LINK = [   
