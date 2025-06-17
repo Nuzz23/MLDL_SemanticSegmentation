@@ -9,7 +9,10 @@ class Downloader():
         "1lY1VGuE0UKsUGTFNNQf7YweolGzuJoRM",
         '1o09HNrDi2rNrgZXmfHngGliuqT6xlvDQ',
         '1sJ85KIaBkjN_6SiXPcsJYqaxfrjrLgX_',
-        '1_0N0415q9cwV9uDKPXbXvJKrretduhph'
+        '1_0N0415q9cwV9uDKPXbXvJKrretduhph',
+        '1TtOYU9OkLoy8Hs3FItMFnhYFtWJNT2wM',
+        '1Q0wB-kIQBF6wivedP-Mac3CswKmC4b5-',
+        '1u3kA7gZ-GtNbPSRuFtfoUDeQxyTZvLpt'
     ]
     
     GTAV_LINK = [
@@ -20,7 +23,10 @@ class Downloader():
         '1wYvdtQ4dUDeZLp4LF0-PLoxZV-opAiQM',
         '1fu7Z0DSSJLFQEBx2E8MFfq3sz1TCtwwb',
         '1sJ85KIaBkjN_6SiXPcsJYqaxfrjrLgX_',
-        '1oxDuTMHCJjhpLh11Oq4G9WUyhU7hVkJ6'
+        '1oxDuTMHCJjhpLh11Oq4G9WUyhU7hVkJ6',
+        '1gI6P62DWuBvIYCFznO8vFlXjmLJaO47g',
+        '1PxzzSi4W7fPK7dpxhjWKaqOepdK-p5jC',
+        '1xQt8EfoAbflIzMcanJHLlaQB5YgTCUg6'
     ]
     
     DEEPLAB_WEIGHTS_LINK = [   
@@ -52,10 +58,18 @@ class Downloader():
             return False
 
         # unzip the dataset
-        subprocess.run(["unzip", "-q", "CityScapes.zip", "-d", "data"], check=True)
+        try:
+            subprocess.run(["unzip", "-q", "CityScapes.zip", "-d", "data"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error unzipping CityScapes dataset: {e}")
+            return False
 
         # remove the zip used for the download
-        subprocess.run(["rm", "CityScapes.zip"], check=True)
+        try:
+            subprocess.run(["rm", "CityScapes.zip"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error removing CityScapes zip file: {e}")
+            return False
 
         return True
     
@@ -84,11 +98,18 @@ class Downloader():
             return False
 
         # unzip the dataset
-        subprocess.run(["unzip", "-q", "GTA5.zip", "-d", "data"], check=True)
-
+        try:
+            subprocess.run(["unzip", "-q", "GTA5.zip", "-d", "data"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error unzipping GTA5 dataset: {e}")
+            return False
+        
         # remove the zip used for the download
-        subprocess.run(["rm", "GTA5.zip"], check=True)
-
+        try:
+            subprocess.run(["rm", "GTA5.zip"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error removing GTA5 zip file: {e}")
+            return False
         return True
     
     
