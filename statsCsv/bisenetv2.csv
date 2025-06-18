@@ -201,3 +201,4 @@
 47,0.4341940897464752,0.29490654385089876,3.974716243773811e-05,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1)]
 48,0.438212606048584,0.28997148454189303,2.7594593229224316e-05,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1)]
 49,0.43405662693977354,0.29361507284641264,1.4787576366283148e-05,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1)]
+0,0.26633160853981974,0.20898960745334624,0.0005,[ColorJitter(p=0.5, brightness=0, contrast=0, saturation=0, hue=0.1)]
