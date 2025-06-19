@@ -13,7 +13,7 @@ def OnlyDiceLossBiSeNet(pred:torch.Tensor, truth:torch.Tensor, diceLoss:DiceLoss
     Returns:
         diceLoss (torch.Tensor): Computed Dice loss.
     """
-    return torch.mean(diceLoss(pred[i], truth, auxiliary=i!=0) for i in range(len(pred)))  if isinstance(pred, (tuple, list)) else diceLoss(pred, truth, auxiliary=False)
+    return torch.stack([diceLoss(pred[i], truth, auxiliary=i!=0) for i in range(len(pred))]).mean() if isinstance(pred, (tuple, list)) else diceLoss(pred, truth, auxiliary=False)
 
 
 def DiceLossAndBiSeNetLoss(pred: torch.Tensor, truth: torch.Tensor, diceLoss: DiceLoss, biSeNetLoss_fn: torch.nn.Module, criterion: torch.nn.Module) -> torch.Tensor:
