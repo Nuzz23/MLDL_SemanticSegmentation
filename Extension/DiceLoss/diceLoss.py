@@ -38,14 +38,13 @@ class DiceLoss(torch.nn.Module):
         Returns:
             dice_loss (torch.Tensor): Computed Dice loss."""
         pred, truth, weight = pred.clone(), truth.clone(), self.__auxiliaryWeights if auxiliary else 1.0
-        pred, truth  = pred.argmax(dim=1) if pred.dim() == 4 else pred, truth.squeeze(1) if truth.dim() == 4 else truth
-        pred[pred == self.__ignore_index], truth[truth==self.__ignore_index] = self.__numClasses, self.__numClasses
+        pred, truth  = pred.softmax(dim=1) if pred.dim() == 4 else pred, truth.squeeze(1) if truth.dim() == 4 else truth
+        truth[truth==self.__ignore_index] = self.__numClasses
         
-        pred = F.one_hot(pred, num_classes=self.__numClasses+1).permute(0, 3, 1, 2).float()[:, :-1]  
-        truth = F.one_hot(truth, num_classes=self.__numClasses+1).permute(0, 3, 1, 2).float()[:, :-1]  
-        
-        intersection = (pred * truth).sum(dim=(2, 3))
-        union = pred.sum(dim=(2, 3)) + truth.sum(dim=(2, 3)) - intersection
+        truth = F.one_hot(truth.long(), num_classes=self.__numClasses+1).permute(0, 3, 1, 2).float()[:, :-1]  
+
+        intersection = (pred * truth).sum(dim=(0, 2, 3))
+        union = pred.sum(dim=(0, 2, 3)) + truth.sum(dim=(0, 2, 3)) - intersection
 
         return (1 - ((2 * intersection + self.__smooth) / (union + self.__smooth)).mean())* weight
     
