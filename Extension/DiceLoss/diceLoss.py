@@ -46,7 +46,7 @@ class DiceLoss(torch.nn.Module):
         intersection = (pred * truth).sum(dim=(0, 2, 3))
         union = pred.sum(dim=(0, 2, 3)) + truth.sum(dim=(0, 2, 3)) - intersection
 
-        return (1 - ((2 * intersection + self.__smooth) / (union + self.__smooth)).mean())* weight
+        return weight - weight*((2 * intersection + self.__smooth) / (union + self.__smooth)).mean()
     
     def __repr__(self)->str:
         """ Returns a string representation of the DiceLoss module."""
