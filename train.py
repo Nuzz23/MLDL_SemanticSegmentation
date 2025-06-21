@@ -2,6 +2,7 @@ import torch
 from utils import meanIoULoss, print_mask, dice_loss_from_logits, perClassIoU
 from datasets.dataLoading import loadData, transformationCityScapes
 from torch.nn import CrossEntropyLoss
+from torch.utils.data import DataLoader
 
 # %% TRAINING
 
@@ -119,7 +120,7 @@ def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False)->float
 
 
 # %% LAST EPOCH EVALUATION
-def evaluateLastEpoch(model, width:int=1024, height:int=512, enablePrint:bool=False)->tuple[float, float]:
+def evaluateLastEpoch(model, valCityScape:DataLoader=None, width:int=1024, height:int=512, enablePrint:bool=False)->tuple[float, float]:
     """
     Evaluates the last epoch of the model on the CityScapes dataset.
     Args:
@@ -131,8 +132,8 @@ def evaluateLastEpoch(model, width:int=1024, height:int=512, enablePrint:bool=Fa
         tuple[float, float]: Mean Intersection over Union (mIoU) and per-class IoU (pci).
     """
     transform_train, transform_groundTruth = transformationCityScapes(width=width, height=height)
-    mIoU, pci = lastEpochEvaluation(model,  loadData(batch_size=4, num_workers=2, pin_memory=False,
-                                                    transform_train=transform_train, transform_groundTruth=transform_groundTruth)[1], CrossEntropyLoss(ignore_index=255), enablePrint=enablePrint)
+    mIoU, pci = lastEpochEvaluation(model,  valCityScape if valCityScape is not None else loadData(batch_size=4, num_workers=2, pin_memory=False,
+                                                    transform_train=transform_train, transform_groundTruth=transform_groundTruth)[1] , CrossEntropyLoss(ignore_index=255), enablePrint=enablePrint)
     print(100*pci)
     print('final mIoU', 100*mIoU)
     
