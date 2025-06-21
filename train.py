@@ -65,7 +65,7 @@ def trainBiSeNet(epoch, model, train_loader, loss_fn, criterion, optimizer, enab
 
 # %% VALIDATION
 
-def validateDeepLabV2(model, val_loader, criterion, enablePrint:bool=False)->float:
+def validateDeepLabV2(model, val_loader, enablePrint:bool=False)->float:
     model.eval()
     mIoU = []
 
