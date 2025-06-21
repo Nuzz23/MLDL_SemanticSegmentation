@@ -1,5 +1,5 @@
 import torch
-from utils import meanIoULoss, print_mask, dice_loss_from_logits, perClassIoU
+from utils import meanIoULoss, print_mask, perClassIoU, BiSeNetLoss
 from datasets.dataLoading import loadData, transformationCityScapes
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
@@ -14,7 +14,7 @@ def trainDeepLabV2(epoch, model, train_loader, criterion, optimizer, enablePrint
         inputs, mask = inputs.cuda() , mask.squeeze().cuda()
         preds = model(inputs)[0]
 
-        loss = criterion(preds, mask.long()) + dice_loss_from_logits(preds, torch.clamp(mask, 0, 18).long(), 19)
+        loss = criterion(preds, mask.long())
 
         optimizer.zero_grad()
         loss.backward()
@@ -35,7 +35,7 @@ def trainDeepLabV2(epoch, model, train_loader, criterion, optimizer, enablePrint
 
 
 
-def trainBiSeNet(epoch, model, train_loader, criterion, optimizer, enablePrint:bool=False)->float:
+def trainBiSeNet(epoch, model, train_loader, loss_fn, criterion, optimizer, enablePrint:bool=False)->float:
     model.train()
     mIoU = []
 
@@ -43,11 +43,7 @@ def trainBiSeNet(epoch, model, train_loader, criterion, optimizer, enablePrint:b
         inputs, mask = inputs.cuda() , mask.squeeze().cuda()
         preds = model(inputs)
 
-        loss1 = criterion(preds[0], mask.long())
-        loss2 = criterion(preds[1], mask.long())
-        loss3 = criterion(preds[2], mask.long())
-
-        loss = loss1 + loss2 + loss3 #dice_loss_from_logits(preds[0], torch.clamp(mask, 0, 18).long(), 19) # #
+        loss = loss_fn(preds, mask.long(), criterion)
 
         optimizer.zero_grad()
         loss.backward()
@@ -64,7 +60,7 @@ def trainBiSeNet(epoch, model, train_loader, criterion, optimizer, enablePrint:b
           print_mask(pred[0].cpu(),"Pred")
           print_mask(mask[0].cpu(),"Mask")
 
-    return sum(mIoU)/len(mIoU) if len(mIoU) else 0
+    return sum(mIoU)/len(mIoU) if len(mIoU) else 0, loss.item()
 
 
 # %% VALIDATION
@@ -101,7 +97,7 @@ def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False)->float
             inputs, mask = inputs.cuda(),  mask.squeeze().cuda()
             preds = model(inputs)
 
-            loss = criterion(preds, mask.long())+ dice_loss_from_logits(preds, torch.clamp(mask, 0, 18).long(), 19)
+            loss = criterion(preds, mask.long())
 
             preds = preds.argmax(1)
 
