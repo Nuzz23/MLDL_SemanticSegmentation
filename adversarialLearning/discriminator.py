@@ -20,8 +20,6 @@ class FCDiscriminator(nn.Module):
         self.classifier = nn.Conv2d(ndf*8, 1, kernel_size=4, stride=2, padding=1) # Bx 1 x 39 x 22
 
         self.leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True) 
-        #self.up_sample = nn.Upsample(scale_factor=32, mode='bilinear')
-        #self.sigmoid = nn.Sigmoid()
 
 
     def forward(self, x: Tensor) -> Tensor:
@@ -31,8 +29,7 @@ class FCDiscriminator(nn.Module):
         Conv2d -> LeakyReLU -> Conv2d -> LeakyReLU -> Conv2d -> LeakyReLU -> Conv2d -> LeakyReLU -> Classifier 
         
         Args:
-            x (torch.Tensor): Input tensor of shape [B, C, H, W] where B is batch size, C is number of classes,
-                        H is height and W is width.
+            x (torch.Tensor): Input tensor of shape [B, C, H, W] where B is batch size, C is number of classes, H is height and W is width.
                         
         Returns:
             x (torch.Tensor): Output tensor of shape [B, 1, H', W'] where H' and W' are reduced dimensions after convolutions.
@@ -46,7 +43,5 @@ class FCDiscriminator(nn.Module):
         x = self.conv4(x)
         x = self.leaky_relu(x)
         x = self.classifier(x)
-        #x = self.up_sample(x)
-        #x = self.sigmoid(x) 
-
+        
         return x
