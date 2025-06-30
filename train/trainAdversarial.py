@@ -1,16 +1,17 @@
-import os
-import torch, subprocess, wandb
-from utils import meanIoULoss, print_mask, poly_lr_scheduler
+import os, torch, subprocess, wandb
 
 from models.bisenet.build_bisenet import BiSeNet
+from Extension.BiSeNetV2.model import BiSeNetV2
+from adversarialLearning.discriminator import FCDiscriminator
+
 from datasets.dataLoading import transformationCityScapes, loadData, transformationGTA5, loadGTA5
 from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
-from utils import BiSeNetLoss, BiSeNetV2Loss
+
+from utils import meanIoULoss, print_mask, poly_lr_scheduler, BiSeNetLoss, BiSeNetV2Loss
+from train.trainBiSeNetCity import validateBiSeNet
+
 from Extension.DiceLoss.diceLoss import DiceLoss
 from Extension.DiceLoss.diceLossImplementations import OnlyDiceLossBiSeNet, DiceLossAndBiSeNetLoss
-from train.trainBiSeNetCity import validateBiSeNet
-from adversarialLearning.discriminator import FCDiscriminator
-from Extension.BiSeNetV2.model import BiSeNetV2
 
 def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),valSize: tuple = (1024, 512),
                augmentation: BaseTransformation | None = None, batchSize: int = 3, momentum: float = 0.9,
@@ -42,7 +43,7 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
     Returns:
         model, discriminator (torch.nn.Module): The fully trained model and discriminator.
     """
-    assert torch.cuda.is_available(), "È necessaria una GPU (T4 non abilitata)"
+    assert torch.cuda.is_available(), "use cuda (T4 gpu not enabled)"
 
     wandb.login(key=os.environ.get('WANDB_API_KEY', ''))
     wandb.init()
@@ -78,7 +79,7 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
 
 
 def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720), valSize: tuple = (1024, 512),
-         augmentation: BaseTransformation= None, pushWeights: bool = False, enablePrint: bool = False, enablePrintVal: bool = False, diceLossVal:int =-1, enableProbability:dict = {'T':0.20, 'limit':4}):
+        augmentation: BaseTransformation= None, pushWeights: bool = False, enablePrint: bool = False, enablePrintVal: bool = False, diceLossVal:int =-1, enableProbability:dict = {'T':0.20, 'limit':4}):
     """
     Main function to train the model using adversarial training with a discriminator.
     
@@ -100,17 +101,14 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
 
     if diceLossVal: dice = DiceLoss()
 
-    # Carica i dati per CityScapes
     transform_train, transform_groundTruth = transformationCityScapes(width=valSize[0], height=valSize[1])
     trainCityScapes, val_dataloader = loadData(batch_size=config['batch_size'], num_workers=2,pin_memory=False,
                                 transform_train=transform_train,transform_groundTruth=transform_groundTruth)
 
-    # Carica i dati per GTA5
     transform_train, transform_groundTruth = transformationGTA5(width=trainSize[0], height=trainSize[1])
     trainGTA = loadGTA5(batch_size=config['batch_size'],num_workers=2,pin_memory=False,
         transform_train=transform_train,transform_groundTruth=transform_groundTruth, augmentation=augmentation, enableProbability=enableProbability)
 
-    # Definizione dei criteri e degli ottimizzatori
     criterion = torch.nn.CrossEntropyLoss(ignore_index=255)
     optimizer = torch.optim.SGD(model.parameters(),lr=config['learning_rate'],
                                 momentum=config['momentum'],weight_decay=config['weight_decay'])
@@ -121,14 +119,13 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
 
 
     match model_str.lower() if isinstance(model_str, str) else model_str:
-      case 'bisenetv2': loss_model = BiSeNetV2Loss
-      case _: loss_model = BiSeNetLoss
+        case 'bisenetv2': loss_model = BiSeNetV2Loss
+        case _: loss_model = BiSeNetLoss
 
     match diceLossVal:
-      case 1: loss_fn = lambda pred, truth, _: OnlyDiceLossBiSeNet(pred, truth, dice)
-      case -1: loss_fn = lambda pred, truth, criterion: DiceLossAndBiSeNetLoss(pred, truth, dice, loss_model, criterion)
-      case _: loss_fn= loss_model
-
+        case 1: loss_fn = lambda pred, truth, _: OnlyDiceLossBiSeNet(pred, truth, dice)
+        case -1: loss_fn = lambda pred, truth, criterion: DiceLossAndBiSeNetLoss(pred, truth, dice, loss_model, criterion)
+        case _: loss_fn= loss_model
 
     for epoch in range(config['starting_epoch'], config['epoches']):
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
