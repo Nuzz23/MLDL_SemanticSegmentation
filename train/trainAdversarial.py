@@ -7,17 +7,15 @@ from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
 from utils import BiSeNetLoss, BiSeNetV2Loss
 from Extension.DiceLoss.diceLoss import DiceLoss
 from Extension.DiceLoss.diceLossImplementations import OnlyDiceLossBiSeNet, DiceLossAndBiSeNetLoss
-from train.trainBiSeNet import validateBiSeNet2
-
-
-
+from train.trainBiSeNetCity import validateBiSeNet
 from adversarialLearning.discriminator import FCDiscriminator
 from Extension.BiSeNetV2.model import BiSeNetV2
 
 def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),valSize: tuple = (1024, 512),
                augmentation: BaseTransformation | None = None, batchSize: int = 3, momentum: float = 0.9,
                learning_rate: float = 0.005, restartTraining: bool = False, pushWeights: bool = False,
-               enablePrint: bool = False, enablePrintVal: bool = False, runId: str | None = None):
+               enablePrint: bool = False, enablePrintVal: bool = False, runId: str | None = None, useDice:int = -1,
+               enableProb:dict = {'T':0.20, 'limit':4}):
     """
     Initializes the model and starts the training process.
 
@@ -34,6 +32,11 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
         enablePrint (bool, optional): If True, enables logging during training.
         enablePrintVal (bool, optional): If True, enables logging during validation.
         runId (str|None, optional): If provided, resumes a specific WandB run.
+        useDice (int, optional): Determines the type of loss to use:
+            0: No Dice Loss
+            1: Only Dice Loss
+            -1: Dice Loss + BiSeNet Loss
+        enableProb (dict, optional): Dictionary to control the probability of enabling augmentation.
 
     Returns:
         model, discriminator (torch.nn.Module): The fully trained model and discriminator.
@@ -69,12 +72,12 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
                     "momentum": momentum,'batch_size': batchSize})
 
     return main(wandb, model, model_str, discriminator, trainSize, valSize, augmentation,
-                pushWeights, enablePrint, enablePrintVal), discriminator
+                pushWeights, enablePrint, enablePrintVal, useDice, enableProb), discriminator
 
 
 
 def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720), valSize: tuple = (1024, 512),
-         augmentation: BaseTransformation= None, pushWeights: bool = False, enablePrint: bool = False, enablePrintVal: bool = False, diceLossVal:int = -1, enableProbability:dict = {'T':0.20, 'limit':4}):
+         augmentation: BaseTransformation= None, pushWeights: bool = False, enablePrint: bool = False, enablePrintVal: bool = False, diceLossVal:int =-1, enableProbability:dict = {'T':0.20, 'limit':4}):
     """
     Main function to train the model using adversarial training with a discriminator.
     
@@ -136,7 +139,7 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
 
         print(f"\t- Train mIoU -> {train_miou}\n\t- Train loss -> {train_loss}")
 
-        val_miou = validateBiSeNet2(model, val_dataloader, criterion, enablePrint=enablePrintVal)
+        val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal)
         print(f"\t- Validate mIoU -> {val_miou}")
 
         wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate": lr, "epoch": epoch, "train_loss":train_loss})
