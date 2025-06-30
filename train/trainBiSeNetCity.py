@@ -9,7 +9,7 @@ from datasets.dataLoading import loadData, transformationCityScapes
 
 
 def initBiSeNetOrV2Base(model_str:str='bisenet', totEpoches:int=50, width:int=1024, height:int=512, batchSize:int=4, momentum:float=0.9, learning_rate:float=0.0005,
-                restartTraining:bool=False, pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False):
+                restartTraining:bool=False, pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, idRun:str|None=None) -> torch.nn.Module:
     """
     Initializes the model and starts the training process.
 
@@ -25,6 +25,7 @@ def initBiSeNetOrV2Base(model_str:str='bisenet', totEpoches:int=50, width:int=10
         pushWeights (bool, optional): Whether to push the weights of the training to git. Defaults to False.
         enablePrint (bool, optional): Whether to enable print of the images during training. Defaults to False.
         enablePrintVal (bool, optional): Whether to enable print of the images during validation. Defaults to False.
+        idRun (str, optional): The run ID for WandB. If None, a new run will be created.
 
     Returns:
         model (torch.nn.Module): The fully trained PyTorch model.
@@ -52,6 +53,7 @@ def initBiSeNetOrV2Base(model_str:str='bisenet', totEpoches:int=50, width:int=10
         starting_epoch = 0
 
     wandb.init(project=f'BiSeNetV2',
+                **({'resume':'must', "id": idRun} if idRun is not None else {}),
                 config={"starting_epoch": starting_epoch, "epoches":totEpoches, 'weight_decay':1e-4,
                         "learning_rate":learning_rate, "momentum":momentum,'batch_size':batchSize})
 
