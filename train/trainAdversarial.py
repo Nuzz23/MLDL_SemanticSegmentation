@@ -1,3 +1,4 @@
+import os
 import torch, subprocess, wandb
 from utils import meanIoULoss, print_mask, poly_lr_scheduler
 
@@ -43,8 +44,8 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
     """
     assert torch.cuda.is_available(), "È necessaria una GPU (T4 non abilitata)"
 
-    wandb.login(key='53d3ed3ff56973b6eb203376a439b403344ea7d5')
-    wandb.init()  
+    wandb.login(key=os.environ.get('WANDB_API_KEY', ''))
+    wandb.init()
 
     
     match model_str.lower() if isinstance(model_str, str) else model_str:
