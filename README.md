@@ -1,7 +1,8 @@
 # SEMANTIC SEGMENTATION
 ## Machine Learning and Deep Learning
 
-This folder contains the project developed for the course Machine Learning and Deep Learning aa 2024/2025 @ PoliTO regarding the topic of segmantic segmentation.
+This folder contains the project developed for the course Machine Learning and Deep Learning aa 2024/2025 @ PoliTO regarding the topic of semantic segmentation.<br>
+Our Model can be tested on https://huggingface.co/spaces/Nuzz23/VisualSemSeg
 
 Authors:
 - Aldo Karamani
