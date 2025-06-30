@@ -5,10 +5,10 @@ This folder contains the project developed for the course Machine Learning and D
 Our Model can be tested on https://huggingface.co/spaces/Nuzz23/VisualSemSeg
 
 Authors:
-- Aldo Karamani
-- Tommaso La Malfa
-- Nunzio Licalzi
-- Simone Licitra
+- **Aldo Karamani**
+- **Tommaso La Malfa**
+- **Nunzio Licalzi**
+- **Simone Licitra**
 
 
 How the repo is organized:
@@ -42,7 +42,7 @@ How the repo is organized:
     - `BiSeNetGtaAugmented.ipynb`: contains the code for running the BiSeNet or BiSeNetV2 model with GTA5 augmented dataset as training set.
     - `BiSeNetLAB.ipynb`: contains the code for running the BiSeNet or BiSeNetV2 model with LAB.
     - `DeepLabV2.ipynb`: contains the code for running the DeepLabV2 model.
-- `stats`: contains the statistics of the training of the various models and approaches.
+- `stats/`: contains the statistics of the training of the various models and approaches.
 - `train/`: contains the code for training the models.
     - `trainBiSeNetGtaAdversarial.py`: contains the code for training the BiSeNet or BiSeNetV2 model with adversarial learning approach on GTA5 dataset.
     - `trainBiSeNetCity.py`: contains the code for training the BiSeNet or BiSeNetV2 model with training on cityscapes dataset.
@@ -52,5 +52,5 @@ How the repo is organized:
     - `trainFDA_LAB_DACS.py`: contains the code for training the FDA or LAB and DACS approach.
     - `trainFDA.py`: contains the code for training the FDA approach.
     - `trainLAB.py`: contains the code for training the LAB image to image approach.
-- `stats/`: contains the code used to compute the statistics of the training of the various models and approaches, so perClassIoU, FLOPS, and model size.
-- `utils/`: contains the utility functions used in the project, such as the printing functions, some losses functions and the learning rate management.
+- `stats.py`: contains the code used to compute the statistics of the training of the various models and approaches, so perClassIoU, FLOPS, and model size.
+- `utils.py`: contains the utility functions used in the project, such as the printing functions, some losses functions and the learning rate management.
