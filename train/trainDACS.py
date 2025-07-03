@@ -52,7 +52,7 @@ def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720),
         case _: model, model_str = BiSeNet(num_classes=19, context_path='resnet18').cuda(), 'BiSeNet'
 
     if restartTraining:
-        artifact = wandb.use_artifact(f'tempmailforme212-politecnico-di-torino/{model_str}Gta5AugDACS/Gta5Aug-weights:v205', type='model')
+        artifact = wandb.use_artifact(f'tempmailforme212-politecnico-di-torino/{model_str}Gta5AugDACS/Gta5Aug-weights:latest', type='model')
         artifact_dir = artifact.download()
 
         weights_path = f"{artifact_dir}/Gta5Aug_weights.pth"
