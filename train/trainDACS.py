@@ -8,11 +8,14 @@ from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
 from models.bisenet.build_bisenet import BiSeNet
 from Extension.BiSeNetV2.model import BiSeNetV2
 
+from Extension.DiceLoss.diceLoss import DiceLoss
+from Extension.DiceLoss.diceLossImplementations import OnlyDiceLossBiSeNet, DiceLossAndBiSeNetLoss
+
 
 from Extension.BiSeNetV2.model import BiSeNetV2
 def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
                 batchSize:int=3, momentum:float=0.9, learning_rate:float=0.005, restartTraining:bool=False, pushWeights:bool=False, enablePrint:bool=False,
-                enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, runId:str|None= None) -> torch.nn.Module:
+                enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, runId:str|None= None, useDice:int=-1) -> torch.nn.Module:
     """
     Initializes the model and starts the training process.
 
@@ -32,6 +35,10 @@ def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720),
         enablePrintVal (bool, optional): Whether to enable print of the images during validation. Defaults to False.
         enableProbability (dict[str, int|float], optional): Dictionary to enable the probability of the augmentation. Defaults to None.
         runId (str, optional): The run ID for WandB. If None, a new run will be created.
+        useDice (int, optional): Determines the type of loss to use:
+            0: No Dice Loss
+            1: Only Dice Loss
+            -1: Dice Loss + BiSeNet Loss
 
     Returns:
         model (torch.nn.Module): The fully trained PyTorch model.
@@ -63,12 +70,12 @@ def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720),
                         "learning_rate":learning_rate, "momentum":momentum,'batch_size':batchSize})
 
     return main(wandb, model=model, model_str=model_str, trainSize=trainSize, valSize=valSize, augmentation=augmentation, pushWeights=pushWeights, enablePrint=enablePrint, 
-                enablePrintVal=enablePrintVal, enableProbability=enableProbability)
+                enablePrintVal=enablePrintVal, enableProbability=enableProbability, useDice=useDice)
 
 
 
 def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
-            pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None) -> torch.nn.Module:
+            pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, useDice:int=-1) -> torch.nn.Module:
     """
         Runs the training and validation process of the model.
 
@@ -81,11 +88,17 @@ def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:in
             pushWeights (bool, optional): whether to push the weights of the training to git. Defaults to False.
             enablePrint (bool, optional): whether to enable print of the images during training. Defaults to False.
             enablePrintVal (bool, optional): whether to enable print of the images during validation. Defaults to False.
+            useDice (int, optional): Determines the type of loss to use:
+                0: No Dice Loss
+                1: Only Dice Loss
+                -1: Dice Loss + BiSeNet Loss
 
         Returns:
             model (torch.nn.Module): the trained model.
     """
     config = wandb.config
+    
+    if useDice: dice = DiceLoss()
 
     transform_train, transform_groundTruth = transformationCityScapes(width=trainSize[0], height=trainSize[1])
     cityScapes_train, val_dataloader = loadData(batch_size=config['batch_size'], num_workers=2, pin_memory=False,
@@ -103,8 +116,13 @@ def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:in
     optimizer = torch.optim.SGD(model.parameters(), lr=config['learning_rate'], momentum=config['momentum'], weight_decay=config['weight_decay'])
 
     match model_str.lower() if isinstance(model_str, str) else model_str:
-        case 'bisenetv2': loss_fn = BiSeNetV2Loss
-        case _:loss_fn = BiSeNetLoss
+        case 'bisenetv2': loss_model = BiSeNetV2Loss
+        case _: loss_model = BiSeNetLoss
+
+    match useDice:
+        case 1: loss_fn = lambda pred, truth, _: OnlyDiceLossBiSeNet(pred, truth, dice)
+        case -1: loss_fn = lambda pred, truth, criterion: DiceLossAndBiSeNetLoss(pred, truth, dice, loss_model, criterion)
+        case _: loss_fn= loss_model
 
     for epoch in range(config['starting_epoch'], config['epoches']):
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
