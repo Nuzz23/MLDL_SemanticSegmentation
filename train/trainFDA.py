@@ -14,7 +14,7 @@ from Extension.BiSeNetV2.model import BiSeNetV2
 from Extension.BiSeNetV2.model import BiSeNetV2
 def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
                 batchSize:int=3, momentum:float=0.9, learning_rate:float=0.005, restartTraining:bool=False, pushWeights:bool=False, enablePrint:bool=False,
-                enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, runId:str|None=None) -> torch.nn.Module:
+                enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, runId:str|None=None, beta:float=0.01) -> torch.nn.Module:
     """
     Initializes the model and starts the training process.
 
@@ -66,12 +66,12 @@ def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720),
                         "learning_rate":learning_rate, "momentum":momentum,'batch_size':batchSize})
 
     return main(wandb, model=model, model_str=model_str, trainSize=trainSize, valSize=valSize, augmentation=augmentation,
-                pushWeights=pushWeights, enablePrint=enablePrint, enablePrintVal=enablePrintVal, enableProbability=enableProbability)
+                pushWeights=pushWeights, enablePrint=enablePrint, enablePrintVal=enablePrintVal, enableProbability=enableProbability, beta=beta)
 
 
 
 def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
-         pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None) -> torch.nn.Module:
+         pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, beta:float=0.01) -> torch.nn.Module:
     """
         Runs the training and validation process of the model.
 
@@ -90,7 +90,7 @@ def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:in
         Returns:
             model (torch.nn.Module): the trained model.
     """
-    beta, config = 0.1, wandb.config
+    config = wandb.config
 
     transform_train, transform_groundTruth = transformNoNormalize(width=trainSize[0], height=trainSize[1], normalizeMean=False)
     cityScapes_train, val_dataloader = loadData(batch_size=config['batch_size'], num_workers=2, pin_memory=False,
@@ -111,7 +111,7 @@ def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:in
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
         print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate -> {lr}")
 
-        train_miou, train_loss = trainBiSeNetFDA(model, trainGTA, cityScapes_train, criterion, loss_fn, optimizer, enablePrint=enablePrint, beta= beta)
+        train_miou, train_loss = trainBiSeNetFDA(model, trainGTA, cityScapes_train, criterion, loss_fn, optimizer, enablePrint=enablePrint, beta=beta)
         print(f"\t- Train mIoU -> {train_miou}")
 
         val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal)

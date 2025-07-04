@@ -213,7 +213,8 @@ def adversarial_train(model, discriminator, criterion, loss_fn, loss_discriminat
         imageCity = curr[0].cuda()
 
         # === TRAIN GENERATOR ===
-        optimizer.zero_grad(), optimizer_discriminator.zero_grad()
+        optimizer.zero_grad() 
+        optimizer_discriminator.zero_grad()
 
         # Freeze discriminator parameters for generator update
         for param in discriminator.parameters():
@@ -247,7 +248,8 @@ def adversarial_train(model, discriminator, criterion, loss_fn, loss_discriminat
         discriminator_loss_target.backward()
 
         # Update generator and discriminator parameters
-        optimizer.step(), optimizer_discriminator.step()
+        optimizer.step()
+        optimizer_discriminator.step()
 
         prediction_source = preds[0].argmax(1)
         # Compute mean IoU for monitoring (using the main output)
