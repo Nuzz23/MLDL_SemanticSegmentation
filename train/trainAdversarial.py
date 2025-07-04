@@ -15,9 +15,9 @@ from Extension.DiceLoss.diceLossImplementations import OnlyDiceLossBiSeNet, Dice
 
 def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),valSize: tuple = (1024, 512),
                augmentation: BaseTransformation | None = None, batchSize: int = 3, momentum: float = 0.9,
-               learning_rate: float = 0.005, restartTraining: bool = False, pushWeights: bool = False,
+               learning_rate_segment: float = 0.05, learning_rate_disc: float = 0.005, restartTraining: bool = False, pushWeights: bool = False,
                enablePrint: bool = False, enablePrintVal: bool = False, runId: str | None = None, useDice:int = -1,
-               enableProb:dict = {'T':0.20, 'limit':4}):
+               enableProb:dict|None= None):
     """
     Initializes the model and starts the training process.
 
@@ -28,7 +28,8 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
         augmentation (BaseTransformation|None, optional): Data augmentation to apply, if any.
         batchSize (int, optional): Batch size for training. Default is 3.
         momentum (float, optional): Momentum for the optimizer. Default is 0.9.
-        learning_rate (float, optional): Learning rate for the optimizer. Default is 0.005.
+        learning_rate_segment (float, optional): Learning rate for the segmentation model. Default is 0.05.
+        learning_rate_disc (float, optional): Learning rate for the discriminator. Default is 0.005.
         restartTraining (bool, optional): If True, loads previously saved checkpoints from WandB.
         pushWeights (bool, optional): If True, checkpoints will be saved to WandB during training.
         enablePrint (bool, optional): If True, enables logging during training.
@@ -38,7 +39,7 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
             0: No Dice Loss
             1: Only Dice Loss
             -1: Dice Loss + BiSeNet Loss
-        enableProb (dict, optional): Dictionary to control the probability of enabling augmentation.
+        enableProb (dict|None, optional): Dictionary to control the probability of enabling augmentation.
 
     Returns:
         model, discriminator (torch.nn.Module): The fully trained model and discriminator.
@@ -62,7 +63,6 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
         checkpoint = torch.load(checkpoint_path)
         model.load_state_dict(checkpoint['model_state_dict'])
         discriminator.load_state_dict(checkpoint['discriminator_state_dict'])
-        print("Pesi caricati correttamente dal checkpoint su WandB!")
 
         starting_epoch = checkpoint['epoch']+1
     else:
@@ -70,8 +70,8 @@ def init_model(model_str, totEpoches: int = 50,trainSize: tuple = (1280, 720),va
 
     wandb.init(project=f'{model_str}Gta5AdversialDICE',
               **({"id": runId, "resume": 'must'} if runId else {}),
-                config={"starting_epoch": starting_epoch, "epoches": totEpoches, 'weight_decay': 1e-4,"learning_rate": learning_rate,
-                    "momentum": momentum,'batch_size': batchSize})
+                config={"starting_epoch": starting_epoch, "epoches": totEpoches, 'weight_decay': 1e-4, "learning_rate_segment": learning_rate_segment,
+                "learning_rate_disc": learning_rate_disc, "momentum": momentum,'batch_size': batchSize})
 
     return main(wandb, model, model_str, discriminator, trainSize, valSize, augmentation,
                 pushWeights, enablePrint, enablePrintVal, useDice, enableProb), discriminator
@@ -110,11 +110,11 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
         transform_train=transform_train,transform_groundTruth=transform_groundTruth, augmentation=augmentation, enableProbability=enableProbability)
 
     criterion = torch.nn.CrossEntropyLoss(ignore_index=255)
-    optimizer = torch.optim.SGD(model.parameters(),lr=config['learning_rate'],
+    optimizer = torch.optim.SGD(model.parameters(),lr=config['learning_rate_segment'],
                                 momentum=config['momentum'],weight_decay=config['weight_decay'])
 
     criterion_discriminator = torch.nn.MSELoss()
-    optimizer_discriminator = torch.optim.SGD(discriminator.parameters(),lr=config['learning_rate'],
+    optimizer_discriminator = torch.optim.SGD(discriminator.parameters(),lr=config['learning_rate_disc'],
                                                 momentum=config['momentum'],weight_decay=config['weight_decay'])
 
 
@@ -175,10 +175,6 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
 
     return model
 
-
-
-
-
 def adversarial_train(model, discriminator, criterion, loss_fn, loss_discriminator, optimizer, optimizer_discriminator,
                            trainGTA, trainCityScapes, enablePrint: bool = False):
     """    Train the model using adversarial training with a discriminator.
@@ -223,31 +219,29 @@ def adversarial_train(model, discriminator, criterion, loss_fn, loss_discriminat
         inputs, mask = inputs.cuda(), mask.squeeze().cuda()
         preds = model(inputs)
         segmentation_loss = loss_fn(preds, mask, criterion)
-        segmentation_loss.backward()
 
         output_target = model(imageCity)[0]
         discriminator_output_target = discriminator(torch.nn.functional.softmax(output_target, dim=1))
-        discriminator_label_source = torch.FloatTensor(discriminator_output_target.data.size()).fill_(0).cuda()
+        discriminator_label_source = torch.ones_like(discriminator_output_target).cuda()
 
-
-        discriminator_loss = lambda_adv * loss_discriminator(discriminator_output_target, discriminator_label_source)
-        discriminator_loss.backward()
+        loss = segmentation_loss + lambda_adv * loss_discriminator(discriminator_output_target, discriminator_label_source)
+        loss.backward()
+        optimizer.step()
 
         # === TRAIN DISCRIMINATOR ===
         for param in discriminator.parameters():
             param.requires_grad = True
 
         discriminator_output_source = discriminator(torch.nn.functional.softmax(preds[0].detach(), dim=1))
-        discriminator_label_source = torch.FloatTensor(discriminator_output_source.data.size()).fill_(0).cuda()
+        discriminator_label_source = torch.zeros_like(discriminator_output_source).cuda()
         discriminator_loss_source = loss_discriminator(discriminator_output_source, discriminator_label_source)
-        discriminator_loss_source.backward()
 
         discriminator_output_target = discriminator(torch.nn.functional.softmax(output_target.detach(), dim=1))
-        discriminator_label_target = torch.FloatTensor(discriminator_output_target.data.size()).fill_(1).cuda()
+        discriminator_label_target = torch.ones_like(discriminator_output_target).cuda()
         discriminator_loss_target = loss_discriminator(discriminator_output_target, discriminator_label_target)
-        discriminator_loss_target.backward()
 
-        # Update generator and discriminator parameters
+        loss2 = discriminator_loss_source + discriminator_loss_target
+        loss2.backward()
         optimizer.step()
         optimizer_discriminator.step()
 
@@ -257,10 +251,10 @@ def adversarial_train(model, discriminator, criterion, loss_fn, loss_discriminat
 
         # Optionally print progress and masks every 100 batches
         if not batch_idx % 100 and enablePrint:
-            print(f'  val batch:{batch_idx} --> {segmentation_loss.item() + discriminator_loss.item()}')
+            print(f'  val batch:{batch_idx} --> {loss.item()}')
             print("val: ", meanIoULoss(mask, prediction_source).item())
             print_mask(prediction_source[0].cpu(),"Pred")
             print_mask(mask[0].cpu(),"Mask")
 
     # Return average mIoU and total loss for the epoch
-    return sum(mIoU)/len(mIoU) if len(mIoU) else 0, segmentation_loss.item() + discriminator_loss.item()
+    return sum(mIoU)/len(mIoU) if len(mIoU) else 0, loss.item()
