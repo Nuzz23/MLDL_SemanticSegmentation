@@ -184,12 +184,12 @@ def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False, normal
     mIoU = []
 
     mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).cuda(), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).cuda()
-    normalize = lambda x: (x - mean) / std
+    normalizeFunc = lambda x: (x - mean) / std
 
     with torch.no_grad():
         for batch_idx, (inputs, mask) in enumerate(val_loader):
             inputs, mask = inputs.cuda(),  mask.squeeze().cuda()
-            inputs = normalize(inputs) if normalize else inputs
+            inputs = normalizeFunc(inputs) if normalize else inputs
             preds = model(inputs)
             preds = preds[0] if isinstance(preds, (list, tuple)) else preds
 
