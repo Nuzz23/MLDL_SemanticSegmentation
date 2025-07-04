@@ -102,12 +102,11 @@ def main(wandb, model,model_str, trainSize:int=(1280, 720), valSize:int=(1024, 5
         case 'bisenetv2': loss_fn = BiSeNetV2Loss
         case _ : loss_fn = BiSeNetLoss
 
-
     for epoch in range(config['starting_epoch'], config['epoches']):
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
         print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate -> {lr}")
 
-        train_miou, loss_val = trainBiSeNet(epoch, model, train_dataloader, criterion, loss_fn, optimizer, enablePrint=enablePrint)
+        train_miou, loss_val = trainBiSeNet(model, train_dataloader, criterion, loss_fn, optimizer, enablePrint=enablePrint)
         print(f"\t- Train mIoU -> {train_miou}")
         print(f'\t- loss -> {loss_val}')
 
