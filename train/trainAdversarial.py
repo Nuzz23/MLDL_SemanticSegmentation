@@ -115,7 +115,7 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
 
     criterion_discriminator = torch.nn.MSELoss()
     optimizer_discriminator = torch.optim.SGD(discriminator.parameters(),lr=config['learning_rate_disc'],
-                                                momentum=config['momentum'],weight_decay=config['weight_decay'])
+                                                momentum=config['momentum']+0.09,weight_decay=config['weight_decay'])
 
 
     match model_str.lower() if isinstance(model_str, str) else model_str:
@@ -128,8 +128,9 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
         case _: loss_fn= loss_model
 
     for epoch in range(config['starting_epoch'], config['epoches']):
-        lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
-        print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate -> {lr}")
+        lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate_segment'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
+        lrDiscriminator = poly_lr_scheduler(optimizer_discriminator, init_lr=config['learning_rate_disc'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
+        print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate segment-> {lr} \n\t- Learning Rate discriminator-> {lrDiscriminator}")
         wandb.config['starting_epoch'] = epoch
 
         train_miou, train_loss = adversarial_train(model, discriminator, criterion, loss_fn, criterion_discriminator,
@@ -140,11 +141,11 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
         val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal)
         print(f"\t- Validate mIoU -> {val_miou}")
 
-        wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate": lr, "epoch": epoch, "train_loss":train_loss})
+        wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate_segment": lr, "learning_rate_discriminator": lrDiscriminator, "epoch": epoch, "train_loss":train_loss})
 
         if pushWeights:
             with open(f"statsCsv/{model_str}Adversarial.csv", 'a', encoding='UTF-8') as fp:
-                fp.write(f"\n{epoch},{train_miou},{val_miou},{lr}")
+                fp.write(f"\n{epoch},{train_miou},{val_miou},{lr},{lrDiscriminator}")
 
                 try:
                     subprocess.run(["git", "add", f"statsCsv/{model_str}Adversarial.csv"], check=True)
@@ -174,6 +175,7 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
             print("Weights saved as artifacts on WandB!")
 
     return model
+
 
 def adversarial_train(model, discriminator, criterion, loss_fn, loss_discriminator, optimizer, optimizer_discriminator,
                            trainGTA, trainCityScapes, enablePrint: bool = False):
