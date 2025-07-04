@@ -32,6 +32,7 @@ class GTA5(Dataset):
         self._transformTarget = transformTarget
         self._aug = aug
         self._enableProbability = enableProbability
+        self.__counter = 0
         
         imagePath = os.path.join(path, GTA5._images)
         labelPath = os.path.join(path, GTA5._label)
