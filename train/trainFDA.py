@@ -184,11 +184,14 @@ def trainBiSeNetFDA(model, trainGTA, trainCityScapes, criterion, loss_fn, optimi
         imageCity = curr[0].cuda()
 
         #calculating the FDA
+        targetPreds = model((imageCity-mean)/std)
+        charbonnier = charbonnierEntropy(targetPreds, mask, beta=beta)
+        
+        
         modified_source = (FDASourceToTarget(inputs, imageCity, beta = beta).cuda()-mean)/std
         preds = model(modified_source)
 
-        targetPreds = model((imageCity-mean)/std)
-        loss = loss_fn(preds, mask, criterion) + charbonnierEntropy(targetPreds) * alpha
+        loss = loss_fn(preds, mask, criterion) + charbonnier*alpha
 
         optimizer.zero_grad()
         loss.backward()
