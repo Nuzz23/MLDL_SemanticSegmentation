@@ -115,7 +115,7 @@ def main(wandb, model, model_str, trainSize:int=(1280, 720), valSize:int=(1024, 
         train_miou = trainBiSeNetLAB(model, trainCity, trainGTA, criterion, optimizer, loss_fn, enablePrint=enablePrint)
         print(f"\t- Train mIoU -> {train_miou}")
 
-        val_miou = validateBiSeNet(model, val_dataloader, criterion, loss_fn, enablePrint=enablePrintVal)
+        val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal)
         print(f"\t- Validate mIoU -> {val_miou}")
 
         wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate": lr, "epoch":epoch})

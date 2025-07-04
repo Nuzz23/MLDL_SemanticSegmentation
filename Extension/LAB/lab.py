@@ -18,8 +18,8 @@ class LAB():
             torch.Tensor: Batch of LAB color transferred images, same shape as input.
         """
         assert images.shape == target_images.shape, "Source and target batch must have same shape"
-        images_np = images.permute(0, 2, 3, 1).cpu().numpy()  # (B, H, W, C)
-        targets_np = target_images.permute(0, 2, 3, 1).cpu().numpy()
+        images_np = images.clone().permute(0, 2, 3, 1).cpu().numpy()  # (B, H, W, C)
+        targets_np = target_images.clone().permute(0, 2, 3, 1).cpu().numpy()
         
         if images_np.max() > 1.1:
             images_np, targets_np = images_np / 255.0, targets_np / 255.0
