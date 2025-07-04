@@ -114,7 +114,7 @@ def main(wandb, model, model_str:str=None, trainSize:int=(1280, 720), valSize:in
         train_miou, train_loss = trainBiSeNetFDA(model, trainGTA, cityScapes_train, criterion, loss_fn, optimizer, enablePrint=enablePrint, beta=beta)
         print(f"\t- Train mIoU -> {train_miou}")
 
-        val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal)
+        val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal, normalize=True)
         print(f"\t- Validate mIoU -> {val_miou}")
 
         wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate": lr, "epoch":epoch,"train_loss":train_loss, "beta": beta})
