@@ -157,17 +157,17 @@ def trainBiSeNet(model, train_loader, criterion, loss_fn, optimizer, enablePrint
         mIoU.append(meanIoULoss(mask, pred).item())
 
         if not batch_idx % 100 and enablePrint:
-          print(f'{batch_idx} --> {loss.item()}')
-          print(meanIoULoss(mask, pred).item())
+            print(f'{batch_idx} --> {loss.item()}')
+            print(meanIoULoss(mask, pred).item())
 
-          print_mask(pred[0].cpu(),"Pred")
-          print_mask(mask[0].cpu(),"Mask")
+            print_mask(pred[0].cpu(),"Pred")
+            print_mask(mask[0].cpu(),"Mask")
 
     return sum(mIoU)/len(mIoU) if len(mIoU) else 0, loss.item()
 
 
 
-def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False)->float:
+def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False, normalize:bool=False)->float:
     """
     Validate the BiSeNet model on the validation dataset.
     
@@ -183,9 +183,13 @@ def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False)->float
     model.eval()
     mIoU = []
 
+    mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).cuda(), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).cuda()
+    normalize = lambda x: (x - mean) / std
+
     with torch.no_grad():
         for batch_idx, (inputs, mask) in enumerate(val_loader):
             inputs, mask = inputs.cuda(),  mask.squeeze().cuda()
+            inputs = normalize(inputs) if normalize else inputs
             preds = model(inputs)
             preds = preds[0] if isinstance(preds, (list, tuple)) else preds
 
