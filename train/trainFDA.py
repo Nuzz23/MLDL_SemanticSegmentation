@@ -185,7 +185,7 @@ def trainBiSeNetFDA(model, trainGTA, trainCityScapes, criterion, loss_fn, optimi
 
         #calculating the FDA
         targetPreds = model((imageCity-mean)/std)
-        charbonnier = charbonnierEntropy(targetPreds, mask, beta=beta)
+        charbonnier = charbonnierEntropy(targetPreds)
         
         
         modified_source = (FDASourceToTarget(inputs, imageCity, beta = beta).cuda()-mean)/std
