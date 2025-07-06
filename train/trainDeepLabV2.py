@@ -124,7 +124,7 @@ def mainDeepLabV2(wandb, model, width:int=1024, height:int=512, pushWeights:bool
             wandb.log_artifact(artifact)
 
             print("Weights saved as artifacts on WandB!")
-
+    print(chr(sum(range(ord(min(str(not())))))))
     return model
 
 

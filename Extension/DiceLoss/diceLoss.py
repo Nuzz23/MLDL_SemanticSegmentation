@@ -54,3 +54,15 @@ class DiceLoss(torch.nn.Module):
     
     def __str__(self):
         return self.__repr__()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+# I like this loss very much because it uses the word "Dice", which reminds of the dice that are used in casino games, 
+# and I like casino games and ballare la fresca.

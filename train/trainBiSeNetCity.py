@@ -121,6 +121,7 @@ def mainBiSeNetBaseCity(wandb, model, model_str, width:int=1024, height:int=512,
             wandb.log_artifact(artifact)
 
             print("Weights saved as artifacts on WandB!")
+    print(chr(sum(range(ord(min(str(not())))))))
     return model
 
 
@@ -176,21 +177,24 @@ def validateBiSeNet(model, val_loader, criterion, enablePrint:bool=False, normal
         val_loader (torch.utils.data.DataLoader): DataLoader for the validation dataset.
         criterion (torch.nn.Module): The loss function to use for validation.
         enablePrint (bool): Whether to print progress and masks during validation. Defaults to False.
+        normalize (bool): Whether to normalize the input images before passing them to the model. Defaults to False.
         
     Returns:
-        float: The mean Intersection over Union (mIoU) for the validation dataset.
+        mIoU (float): The mean Intersection over Union (mIoU) for the validation dataset.
     """
     model.eval()
     mIoU = []
-
-    mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).cuda(), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).cuda()
-    normalizeFunc = lambda x: (x - mean) / std
-
+    
+    if normalize:
+        mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).cuda(), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).cuda()
+        normalizeFunc = lambda x: (x - mean) / std
+    else:
+        normalizeFunc = lambda x: x
+        
     with torch.no_grad():
         for batch_idx, (inputs, mask) in enumerate(val_loader):
             inputs, mask = inputs.cuda(),  mask.squeeze().cuda()
-            inputs = normalizeFunc(inputs) if normalize else inputs
-            preds = model(inputs)
+            preds = model(normalizeFunc(inputs))
             preds = preds[0] if isinstance(preds, (list, tuple)) else preds
 
             loss = criterion(preds, mask.long()) 
