@@ -165,7 +165,8 @@ def trainBiSeNetLAB(model, trainCity, trainGTA, criterion, optimizer, loss_fn, e
     """
     model.train()
     mIoU = []
-    mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
+    mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).cuda(), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).cuda()
+    normalize = lambda x: (x - mean) / std
     lab, interCity = LAB(), iter(trainCity)
     assert interCity, "Cityscapes dataset is empty"
 
@@ -178,8 +179,7 @@ def trainBiSeNetLAB(model, trainCity, trainGTA, criterion, optimizer, loss_fn, e
             curr = next(interCity, None)
         imageCity, _ = curr
 
-        inputs = ((lab.transform(inputs, imageCity) -  mean)/std).cuda()
-        preds = model(inputs)
+        preds = model(normalize(lab.transform(inputs, imageCity)))
 
         loss = loss_fn(preds, mask.long(), criterion)
 
