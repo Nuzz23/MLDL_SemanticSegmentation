@@ -21,7 +21,7 @@ from models.bisenet.build_bisenet import BiSeNet
 
 def init_model(model_str:str=None,  useFDA:bool=True, totEpoches:int=50, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
                 batchSize:int=3, momentum:float=0.9, learning_rate:float=0.005,restartTraining:bool=False, pushWeights:bool=False, enablePrint:bool=False,
-                enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, diceLossVal:int=0, runId:str=None) -> torch.nn.Module:
+                enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, diceLossVal:int=0, runId:str=None, beta:float=0.05) -> torch.nn.Module:
     """
     Initializes the model and starts the training process.
 
@@ -43,6 +43,7 @@ def init_model(model_str:str=None,  useFDA:bool=True, totEpoches:int=50, trainSi
         enableProbability (dict[str, int|float], optional): The probability of applying the augmentation. Defaults to None.
         diceLossVal (int, optional): Set to 0 for no dice, set to 1 for dice, set to -1 for dice + cross entropy. Defaults to 0.
         runId (str, optional): The run ID for WandB. If None, a new run will be created.
+        beta (float, optional): The beta value for FDA transformation. Defaults to 0.05.
 
     Returns:
         model (torch.nn.Module): The fully trained PyTorch model.
@@ -73,12 +74,12 @@ def init_model(model_str:str=None,  useFDA:bool=True, totEpoches:int=50, trainSi
                 config={"starting_epoch": starting_epoch, "epoches":totEpoches, 'weight_decay':1e-4,
                         "learning_rate":learning_rate, "momentum":momentum,'batch_size':batchSize})
 
-    return main(wandb, model=model, model_str=model_str, useFDA=useFDA, trainSize=trainSize, valSize=valSize, augmentation=augmentation,
+    return main(wandb, model=model, model_str=model_str, useFDA=useFDA, trainSize=trainSize, valSize=valSize, augmentation=augmentation, beta=beta,
                 pushWeights=pushWeights, enablePrint=enablePrint, enablePrintVal=enablePrintVal, enableProbability=enableProbability, diceLossVal=diceLossVal)
 
 
 def main(wandb, model, model_str, useFDA, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
-        pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, diceLossVal:int=0) -> torch.nn.Module:
+        pushWeights:bool=False, enablePrint:bool=False, enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, diceLossVal:int=0, beta:float=0.05) -> torch.nn.Module:
     """
         Runs the training and validation process of the model.
 
@@ -93,6 +94,7 @@ def main(wandb, model, model_str, useFDA, trainSize:int=(1280, 720), valSize:int
             enablePrintVal (bool, optional): whether to enable print of the images during validation. Defaults to False.
             enableProbability (dict[str, int|float], optional): the probability of applying the augmentation. Defaults to None.
             diceLossVal (int, optional): set to 0 for no dice, set to 1 for dice, set to -1 for dice + cross entropy. Defaults to 0.
+            beta (float, optional): the beta value for FDA transformation. Defaults to 0.05.
 
         Returns:
             model (torch.nn.Module): the trained model.
@@ -127,7 +129,7 @@ def main(wandb, model, model_str, useFDA, trainSize:int=(1280, 720), valSize:int
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
         print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate -> {lr}")
 
-        train_miou, train_loss = trainBiSeNetFDADACS(model, useFDA, trainGTA, cityScapes_train, criterion, loss_fn, optimizer, enablePrint=enablePrint)
+        train_miou, train_loss = trainBiSeNetFDADACS(model, useFDA, trainGTA, cityScapes_train, criterion, loss_fn, optimizer, enablePrint=enablePrint, beta=beta)
         print(f"\t- Train mIoU -> {train_miou}")
 
         val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal, normalize=True)
