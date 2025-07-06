@@ -1,6 +1,5 @@
-import torch
+import torch, numpy as np
 from skimage import color
-
 
 class LAB():
     """
@@ -29,10 +28,10 @@ class LAB():
 
         out_images = []
         for i in range(images.shape[0]):
-            src_lab = color.rgb2lab(images[i])
-            trg_lab = color.rgb2lab(target_images[i])
+            src_lab = color.rgb2lab(images[i].cpu().numpy())
+            trg_lab = color.rgb2lab(target_images[i].cpu().numpy())
 
-            lab_trans = ((src_lab - torch.mean(src_lab, axis=(0, 1))) / (torch.std(src_lab, axis=(0, 1)) + 1e-8)) * torch.std(trg_lab, axis=(0, 1)) + torch.mean(trg_lab, axis=(0, 1))
-            out_images.append((torch.clip(color.lab2rgb(lab_trans), 0, 1) * 255).byte())
+            lab_trans = ((src_lab - np.mean(src_lab, axis=(0, 1))) / (np.std(src_lab, axis=(0, 1)) + 1e-8)) * np.std(trg_lab, axis=(0, 1)) + np.mean(trg_lab, axis=(0, 1))
+            out_images.append((np.clip(color.lab2rgb(lab_trans), 0, 1) * 255).astype(np.float64))
 
-        return torch.stack(out_images, axis=0).permute(0, 3, 1, 2).float() / 255.0
+        return torch.from_numpy(np.array(out_images)).permute(0, 3, 1, 2).float().cuda() / 255.0
