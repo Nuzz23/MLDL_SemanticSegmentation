@@ -53,7 +53,7 @@ def initBiSeNetOrV2Base(model_str:str='bisenet', totEpoches:int=50, width:int=10
         starting_epoch = 0
 
     wandb.init(project=f'BiSeNetV2',
-                **({'resume':'must', "id": idRun} if idRun is not None else {}),
+                **({'resume':'must', "id": idRun} if idRun else {}),
                 config={"starting_epoch": starting_epoch, "epoches":totEpoches, 'weight_decay':1e-4,
                         "learning_rate":learning_rate, "momentum":momentum,'batch_size':batchSize})
 
@@ -104,7 +104,7 @@ def mainBiSeNetBaseCity(wandb, model, model_str, width:int=1024, height:int=512,
         print(f"\t- Validate mIoU -> {val_miou}")
 
         wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate": lr, "epoch":epoch,
-                   'train_loss':train_loss})
+                    'train_loss':train_loss})
 
         if pushWeights:
             torch.save(model.state_dict(), "model_weights.pth")
