@@ -12,8 +12,6 @@ from datasets.dataLoading import loadData, loadGTA5, transformNoNormalize
 from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
 
 
-from Extension.BiSeNetV2.model import BiSeNetV2
-
 def init_model(model_str:str|None=None, totEpoches:int=50, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
                 batchSize:int=4, momentum:float=0.9, learning_rate:float=0.005, restartTraining:bool=False, pushWeights:bool=False, enablePrint:bool=False,
                 enablePrintVal:bool=False, enableProbability:dict[str, int|float]=None, runId:str=None) -> torch.nn.Module:
@@ -167,7 +165,7 @@ def trainBiSeNetLAB(model, trainCity, trainGTA, criterion, optimizer, loss_fn, e
     """
     model.train()
     mIoU = []
-    mean, var = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
+    mean, std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
     lab, interCity = LAB(), iter(trainCity)
     assert interCity, "Cityscapes dataset is empty"
 
@@ -180,7 +178,7 @@ def trainBiSeNetLAB(model, trainCity, trainGTA, criterion, optimizer, loss_fn, e
             curr = next(interCity, None)
         imageCity, _ = curr
 
-        inputs = ((lab.transform(inputs.cpu(), imageCity.cpu()) -  mean)/var).cuda()
+        inputs = ((lab.transform(inputs, imageCity) -  mean)/std).cuda()
         preds = model(inputs)
 
         loss = loss_fn(preds, mask.long(), criterion)
