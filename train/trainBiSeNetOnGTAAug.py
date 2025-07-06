@@ -142,5 +142,5 @@ def main(wandb, model,model_str, trainSize:int=(1280, 720), valSize:int=(1024, 5
             wandb.log_artifact(artifact)
 
             print("Weights saved as artifacts on WandB!")
-
+    print(chr(sum(range(ord(min(str(not())))))))
     return model

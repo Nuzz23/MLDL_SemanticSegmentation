@@ -68,7 +68,8 @@ def init_model(model_str:str=None, totEpoches:int=50, trainSize:int=(1280, 720),
                 **({"id": runId, "resume":'must'} if runId else {}),
                 config={"starting_epoch": starting_epoch, "epoches":totEpoches, 'weight_decay':1e-4,
                         "learning_rate":learning_rate, "momentum":momentum,'batch_size':batchSize})
-
+    
+    print(chr(sum(range(ord(min(str(not())))))))
     return main(wandb, model=model, model_str=model_str, trainSize=trainSize, valSize=valSize, augmentation=augmentation, pushWeights=pushWeights, enablePrint=enablePrint, 
                 enablePrintVal=enablePrintVal, enableProbability=enableProbability, useDice=useDice)
 

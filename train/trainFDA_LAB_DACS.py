@@ -130,7 +130,7 @@ def main(wandb, model, model_str, useFDA, trainSize:int=(1280, 720), valSize:int
         train_miou, train_loss = trainBiSeNetFDADACS(model, useFDA, trainGTA, cityScapes_train, criterion, loss_fn, optimizer, enablePrint=enablePrint)
         print(f"\t- Train mIoU -> {train_miou}")
 
-        val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal)
+        val_miou = validateBiSeNet(model, val_dataloader, criterion, enablePrint=enablePrintVal, normalize=True)
         print(f"\t- Validate mIoU -> {val_miou}")
 
         wandb.log({"train_mIoU": train_miou, "val_mIoU": val_miou, "learning_rate": lr, "epoch":epoch, "train_loss":train_loss})
@@ -160,7 +160,8 @@ def main(wandb, model, model_str, useFDA, trainSize:int=(1280, 720), valSize:int
             wandb.log_artifact(artifact)
 
             print("Weights saved as artifacts on WandB!")
-
+            
+    print(chr(sum(range(ord(min(str(not())))))))
     return model
 
 
@@ -210,32 +211,32 @@ def trainBiSeNetFDADACS(model, useFDA, trainGTA, trainCityScapes, criterion, los
         del curr, preds
 
         #calculating the FDA
-        modified_source =((FDASourceToTarget(inputs, imageCity, beta = beta) if useFDA else lab.transform(inputs.clone(), imageCity.clone())).cpu() - mean)/std
-        charEntropy1 = charbonnierEntropy(model(imageCity.cuda()))
-        preds = model(modified_source.cuda())
-
+        modified_source = FDASourceToTarget(inputs, imageCity, beta = beta) if useFDA else lab.transform(inputs.clone(), imageCity.clone())
+        charEntropy1 = charbonnierEntropy(model((imageCity.cuda() - mean)/std))
+        preds = model((modified_source.cuda() - mean)/ std)
+        
         del inputs
 
         curr = next(interCity, None)
         if curr is None:
-          interCity = iter(trainCityScapes)
-          curr = next(interCity, None)
+            interCity = iter(trainCityScapes)
+            curr = next(interCity, None)
 
         imageCity, _ = curr
         del curr
 
-        Yt = model(imageCity.cuda()) # Yt is the pseudo-label
+        Yt = model((imageCity.cuda()-mean)/std) # Yt is the pseudo-label
         Yt = [Yt[i].detach().cpu() for i in range(len(Yt))]
 
         Yt[0] = Yt[0].argmax(1)
 
         Xm, Ym = DACS(modified_source, mask.cpu(), imageCity, Yt[0])
-        YmPred = model(Xm.cuda())
+        YmPred = model((Xm.cuda()-mean)/std)
 
         Ym = Ym.cpu()
 
         #calculating the charbonnierEntropy
-        loss =  lossSource + alphaChar*(charEntropy1+charbonnierEntropy(model(imageCity.cuda()))) + alphaTarget*loss_fn(YmPred, Ym.cuda(), criterion)
+        loss =  lossSource + alphaChar*(charEntropy1+charbonnierEntropy(model((imageCity.cuda()-mean)/std))) + alphaTarget*loss_fn(YmPred, Ym.cuda(), criterion)
 
         optimizer.zero_grad()
         loss.backward()

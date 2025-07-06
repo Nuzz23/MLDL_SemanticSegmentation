@@ -172,8 +172,10 @@ def main(wandb, model, model_str, discriminator, trainSize: tuple = (1280, 720),
             artifact.add_file("Gta5Adv_checkpoint.pth")
             wandb.log_artifact(artifact)
 
+    
             print("Weights saved as artifacts on WandB!")
-
+            
+    print(chr(sum(range(ord(min(str(not())))))))
     return model
 
 
