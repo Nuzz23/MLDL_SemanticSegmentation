@@ -122,27 +122,27 @@ def main(wandb, model, model_str, trainSize:int=(1280, 720), valSize:int=(1024, 
             with open(f"statsCsv/{model_str}LAB.csv", 'a', encoding='UTF-8') as fp:
                 fp.write(f"\n{epoch},{train_miou},{val_miou},{lr},{augmentation.__str__()}")
 
-        try:
-            subprocess.run(["git", "add", f"statsCsv/{model_str}LAB.csv"], check=True)
-            subprocess.run(["git", "commit", "-m", f"added statsCsv/{model_str}LAB.csv"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["git", "pull", "--rebase"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["git", "push"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except subprocess.CalledProcessError as e:
-            print(f"Git command failed: {e}")
+                try:
+                    subprocess.run(["git", "add", f"statsCsv/{model_str}LAB.csv"], check=True)
+                    subprocess.run(["git", "commit", "-m", f"added statsCsv/{model_str}LAB.csv"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.run(["git", "pull", "--rebase"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.run(["git", "push"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except subprocess.CalledProcessError as e:
+                    print(f"Git command failed: {e}")
 
-        torch.save(model.state_dict(), "Gta5Aug_weights.pth")
+            torch.save(model.state_dict(), "Gta5Aug_weights.pth")
 
-        artifact = wandb.Artifact(
-            name=f"Gta5Aug-weights",
-            type="model",
-            metadata={"epoch": epoch +1}
-        )
-        artifact.add_file("Gta5Aug_weights.pth")
+            artifact = wandb.Artifact(
+                name=f"Gta5Aug-weights",
+                type="model",
+                metadata={"epoch": epoch +1}
+            )
+            artifact.add_file("Gta5Aug_weights.pth")
 
-        # Logga l'artefatto su WandB
-        wandb.log_artifact(artifact)
+            # Logga l'artefatto su WandB
+            wandb.log_artifact(artifact)
 
-        print("Weights saved as artifacts on WandB!")
+            print("Weights saved as artifacts on WandB!")
     print(chr(sum(range(ord(min(str(not())))))))
     return model
 
