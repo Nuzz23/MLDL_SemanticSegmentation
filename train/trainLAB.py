@@ -107,6 +107,7 @@ def main(wandb, model, model_str, trainSize:int=(1280, 720), valSize:int=(1024, 
 
 
     for epoch in range(config['starting_epoch'], config['epoches']):
+        config['starting_epoch'] = epoch 
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
         print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate -> {lr}")
 
