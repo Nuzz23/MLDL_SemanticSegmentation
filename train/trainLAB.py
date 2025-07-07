@@ -107,7 +107,6 @@ def main(wandb, model, model_str, trainSize:int=(1280, 720), valSize:int=(1024, 
 
 
     for epoch in range(config['starting_epoch'], config['epoches']):
-        config['starting_epoch'] = epoch 
         lr = poly_lr_scheduler(optimizer, init_lr=config['learning_rate'], iter=epoch, max_iter=config['epoches'], lr_decay_iter=1)
         print(f"\nepoch: {epoch+1:2d} \n\t- Learning Rate -> {lr}")
 
@@ -131,19 +130,19 @@ def main(wandb, model, model_str, trainSize:int=(1280, 720), valSize:int=(1024, 
         except subprocess.CalledProcessError as e:
             print(f"Git command failed: {e}")
 
-            torch.save(model.state_dict(), "Gta5Aug_weights.pth")
+        torch.save(model.state_dict(), "Gta5Aug_weights.pth")
 
-            artifact = wandb.Artifact(
-                name=f"Gta5Aug-weights",
-                type="model",
-                metadata={"epoch": epoch +1}
-            )
-            artifact.add_file("Gta5Aug_weights.pth")
+        artifact = wandb.Artifact(
+            name=f"Gta5Aug-weights",
+            type="model",
+            metadata={"epoch": epoch +1}
+        )
+        artifact.add_file("Gta5Aug_weights.pth")
 
-            # Logga l'artefatto su WandB
-            wandb.log_artifact(artifact)
+        # Logga l'artefatto su WandB
+        wandb.log_artifact(artifact)
 
-            print("Weights saved as artifacts on WandB!")
+        print("Weights saved as artifacts on WandB!")
     print(chr(sum(range(ord(min(str(not())))))))
     return model
 
