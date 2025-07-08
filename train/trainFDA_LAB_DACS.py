@@ -1,13 +1,13 @@
-
 import torch, os, subprocess, wandb
-
 
 from train.trainBiSeNetCity import validateBiSeNet
 
 from utils import meanIoULoss, print_mask, charbonnierEntropy, BiSeNetLoss, BiSeNetV2Loss, poly_lr_scheduler
+
 from imageToImageApproach.DACS import DACS
 from imageToImageApproach.FDA import FDASourceToTarget
 from Extension.LAB.lab import LAB
+
 from datasets.dataLoading import transformationCityScapes, loadData, transformationGTA5, loadGTA5
 from datasets.dataAugmentation.base.baseTransformation import BaseTransformation
 
@@ -16,7 +16,6 @@ from Extension.DiceLoss.diceLossImplementations import OnlyDiceLossBiSeNet, Dice
 
 from Extension.BiSeNetV2.model import BiSeNetV2
 from models.bisenet.build_bisenet import BiSeNet
-
 
 
 def init_model(model_str:str=None,  useFDA:bool=True, totEpoches:int=50, trainSize:int=(1280, 720), valSize:int=(1024, 512), augmentation:BaseTransformation|None=None,
@@ -186,7 +185,7 @@ def trainBiSeNetFDADACS(model, useFDA, trainGTA, trainCityScapes, criterion, los
         tuple: A tuple containing the mean IoU and the loss value.
     """
     model.train()
-    mean,std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
+    mean,std = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).cuda(), torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).cuda()
 
     alphaChar, alphaTarget, mIoU = 0.005, 1, []
 
