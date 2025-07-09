@@ -26,7 +26,7 @@ Authors:
     - `labelConverter/`: contains the code for converting the labels of the datasets GTAV to the cityscapes format.
 - `Extension/`: contains the code for the extension proposed by our group.
     - `BiSeNetV2/`: contains the code for the BiSeNetV2 model.
-    - `DAForm/`: contains the code for the probability adjustment between the two classes.
+    - `DAForm/`: contains the code for the probability adjustment between the two domains.
     - `DiceLoss/`: contains the code for the Dice loss function and its implementation.
     - `LAB/`: contains the code for the LAB image To Image approach.
 - `ImageToImageApproach/`: contains the code for the image to image approach chosen, so DACS and FDA.
