@@ -18,7 +18,7 @@ class LAB():
             target_images (torch.Tensor): Batch of target images in RGB, shape (B, C, H, W), same range as images.
 
         Returns:
-            torch.Tensor: Batch of LAB color transferred images, same shape as input.
+            modified source (torch.Tensor): Batch of LAB color transferred images, same shape as input.
         """
         assert images.shape == target_images.shape, "Source and target batch must have same shape"
         images, target_images = images.clone().permute(0, 2, 3, 1), target_images.clone().permute(0, 2, 3, 1)  # (B, H, W, C)
